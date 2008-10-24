@@ -12,8 +12,8 @@
   `(struct example :example ~description ~behavior))
 
 (defstruct expectation :type :expected :actual :result)
-(defmacro create-expectation [expected actual result]
-  `(struct expectation :expectation ~expected ~actual ~result))
+(defmacro create-expectation [expected actual]
+  `(struct expectation :expectation ~expected ~actual))
 
 ;;; Verification
 (defmulti verify :type)
@@ -26,7 +26,10 @@
 
 (defmethod verify :example [example]
   (printf "- %s%s%n" (:description example)
-	             (if (:result (:behavior example)) "" (format " (FAILED)"))))
+	             (if (verify (:behavior example)) "" (format " (FAILED)"))))
+
+(defmethod verify :expectation [expectation]
+  (= (:expected expectation) (:actual expectation)))
 
 ;;; Public interface
 (defmacro describe [description & body]
@@ -36,7 +39,7 @@
   `(create-example ~description (do ~@behavior)))
 
 (defmacro => [expected should matcher actual]
-  `(create-expectation ~expected ~actual (= ~expected ~actual)))
+  `(create-expectation ~expected ~actual))
 
 (defn run-examples [& example-groups]
   (verify (create-unit example-groups)))
