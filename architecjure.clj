@@ -35,7 +35,7 @@
 (defmacro it [description & behavior]
   `(create-example ~description (do ~@behavior)))
 
-(defmacro temp [expected should matcher actual]
+(defmacro => [expected should matcher actual]
   `(create-expectation ~expected ~actual (= ~expected ~actual)))
 
 (defn run-examples [& example-groups]
