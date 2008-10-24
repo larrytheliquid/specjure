@@ -19,8 +19,7 @@
   `(create-example ~description "mock behavior"))
 
 (defn run-examples [& example-groups]
-  (doseq example-group example-groups
-    (println example-group)))
+  (verify (create-unit example-groups)))
 
 ;;; Output
 
