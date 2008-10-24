@@ -11,6 +11,19 @@
 (defmacro create-example [description behavior]
   `(struct example :example ~description ~behavior))
 
+;;; Verification
+(defmulti verify :type)
+
+(defmethod verify :unit [unit]
+  (doseq example-group (:example-groups unit) (verify example-group)))
+
+(defmethod verify :example-group [example-group]
+  (printf "%n%s%n"(:description example-group))
+  (doseq example (:examples example-group) (verify example)))
+
+(defmethod verify :example [example]
+  (printf "- %s%n" (:description example)))
+
 ;;; Public interface
 (defmacro describe [description & body]
   `(create-example-group ~description (list ~@body)))
@@ -20,14 +33,3 @@
 
 (defn run-examples [& example-groups]
   (verify (create-unit example-groups)))
-
-;;; Output
-
-(defmulti verify :type)
-(defmethod verify :unit [unit]
-  (doseq example-group (:example-groups unit) (verify example-group)))
-(defmethod verify :example-group [example-group]
-  (println (:description example-group))
-  (doseq example (:examples example-group) (verify example)))
-(defmethod verify :example [example]
-  (println (:description example)))
