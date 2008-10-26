@@ -12,7 +12,6 @@
   `(struct expectation :expectation ~expected ~actual))
 
 (defmulti verify :type)
-
 (defmethod verify :example-group [example-group]
   (printf "%n%s%n"(:description example-group))
   (map (fn [example] 
@@ -39,6 +38,7 @@
   `(create-expectation ~expected ~actual))
 
 (defn run-examples [& example-groups]
-  (let [examples (map verify example-groups)
-	examples-count (count examples)]
-    (printf "%n%s Examples%n" examples-count)))
+  (let [examples (mapcat verify example-groups)
+	examples-count (count examples)
+	failures-count (count (filter :failed-expectation examples))]
+    (printf "%n%s Examples, %s Failures%n" examples-count failures-count)))
