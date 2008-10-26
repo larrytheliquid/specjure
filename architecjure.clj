@@ -22,9 +22,9 @@
        (map verify (:examples example-group))))
 
 (defmethod verify :example [example]
-  (let [failed-expectations ((:behavior example))]
-    (printf "- %s%s%n" (:description example) (if (empty? failed-expectations) "" " FAILED"))
-    (assoc example :failed-expectations failed-expectations)))
+  (let [failed-expectations ((:behavior example)) example-passed? (empty? failed-expectations)]
+    (printf "- %s%s%n" (:description example) (if example-passed? "" " (FAILED)"))
+    (if example-passed? example (assoc example :failed-expectations failed-expectations))))
 
 (defmethod verify :expectation [expectation]
   (= (:expected expectation) (:actual expectation)))
@@ -42,8 +42,9 @@
   `(when-not (= ~expected ~actual) 
      (set! *failed-expectations*
 	   (conj *failed-expectations* (create-expectation ~expected ~actual)))))
+
 (defn run-examples [& example-groups]
   (let [examples (mapcat verify example-groups)
 	examples-count (count examples)
-	failures-count (count (filter #(not (empty? (:failed-expectations %))) examples))]
+	failures-count (count (filter :failed-expectations examples))]
     (printf "%n%s Examples, %s Failures%n" examples-count failures-count)))
