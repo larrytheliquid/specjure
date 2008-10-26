@@ -1,4 +1,5 @@
 ;;; Data structures
+(def *example-groups*)
 (def *failed-expectations*)
 
 (defstruct example-group :type :description :examples)
@@ -13,17 +14,17 @@
 (defmacro create-expectation [expected actual]
   `(struct expectation :expectation ~expected ~actual))
 
+;;; Verification
 (defmulti verify :type)
 (defmethod verify :example-group [example-group]
-  (printf "%n%s%n"(:description example-group))
-  (map (fn [example] 
-	 (assoc example :description 
-		(str (:description example-group) " " (:desription example))))
-       (map verify (:examples example-group))))
+  (map verify (map (fn [example] 
+		     (assoc example :description 
+			    (str (:description example-group) " " (:description example))))
+		   (:examples example-group))))
 
 (defmethod verify :example [example]
   (let [failed-expectations ((:behavior example)) example-passed? (empty? failed-expectations)]
-    (printf "- %s%s%n" (:description example) (if example-passed? "" " (FAILED)"))
+    (printf "%s%s%n" (:description example) (if example-passed? "" " (FAILED)"))
     (if example-passed? example (assoc example :failed-expectations failed-expectations))))
 
 (defmethod verify :expectation [expectation]
@@ -31,7 +32,7 @@
 
 ;;; Public interface
 (defmacro describe [description & body]
-  `(create-example-group ~description (list ~@body)))
+  `(set! *example-groups* (conj *example-groups* (create-example-group ~description (list ~@body)))))
 
 (defmacro it [description & behavior]
   `(create-example ~description (fn [] (binding [*failed-expectations* []]
@@ -45,8 +46,10 @@
 	     (conj *failed-expectations* (create-expectation evaluated-expected#
 							     evaluated-actual#))))))
 
-(defn run-examples [& example-groups]
-  (let [examples (mapcat verify example-groups)
-	examples-count (count examples)
-	failures-count (count (filter :failed-expectations examples))]
-    (printf "%n%s Examples, %s Failures%n" examples-count failures-count)))
+(defmacro run-examples [& body]
+  `(binding [*example-groups* []]
+     (do ~@body)
+     (let [examples# (mapcat verify *example-groups*)
+	   examples-count# (count examples#)
+	   failures-count# (count (filter :failed-expectations examples#))]
+       (printf "%n%s Examples, %s Failures%n" examples-count# failures-count#))))
