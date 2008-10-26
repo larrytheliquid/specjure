@@ -39,9 +39,11 @@
 					 *failed-expectations*))))
 
 (defmacro => [expected should matcher actual]
-  `(when-not (= ~expected ~actual) 
-     (set! *failed-expectations*
-	   (conj *failed-expectations* (create-expectation ~expected ~actual)))))
+  `(let [evaluated-expected# ~expected evaluated-actual# ~actual]
+     (when-not (= evaluated-expected# evaluated-actual#)
+       (set! *failed-expectations*
+	     (conj *failed-expectations* (create-expectation evaluated-expected#
+							     evaluated-actual#))))))
 
 (defn run-examples [& example-groups]
   (let [examples (mapcat verify example-groups)
