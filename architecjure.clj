@@ -1,3 +1,7 @@
+;;; Utilities
+(defmacro push! [coll x]
+  (list 'set! coll (list 'conj coll x)))
+
 ;;; Data structures
 (def *example-groups*)
 (def *failed-expectations*)
@@ -32,7 +36,7 @@
 
 ;;; Public interface
 (defmacro describe [description & body]
-  `(set! *example-groups* (conj *example-groups* (create-example-group ~description (list ~@body)))))
+  `(push! *example-groups* (create-example-group ~description (list ~@body))))
 
 (defmacro it [description & behavior]
   `(create-example ~description (fn [] (binding [*failed-expectations* []]
@@ -40,11 +44,9 @@
 					 *failed-expectations*))))
 
 (defmacro => [expected should matcher actual]
-  `(let [evaluated-expected# ~expected evaluated-actual# ~actual]
-     (when-not (= evaluated-expected# evaluated-actual#)
-       (set! *failed-expectations*
-	     (conj *failed-expectations* (create-expectation evaluated-expected#
-							     evaluated-actual#))))))
+  `(let [expectation# (create-expectation ~expected ~actual)]
+     (when-not (verify expectation#)
+       (push! *failed-expectations* expectation#))))
 
 (defmacro run-examples [& body]
   `(binding [*example-groups* []]

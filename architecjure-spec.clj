@@ -2,6 +2,19 @@
 
 (run-examples
 
+(def my-vector)
+(describe "push!, with an empty vector"
+  (it "should add the value to the list"
+    (binding [my-vector []]
+      (push! my-vector 1)
+      (=> my-vector should = [1]))))
+
+(describe "push!, with a non-empty vector"
+  (it "should add the value to the back of the list"
+    (binding [my-vector [1]]
+      (push! my-vector 2)
+      (=> my-vector should = [1 2]))))
+
 (describe "describe, without examples")
 
 (describe "describe, with examples"
