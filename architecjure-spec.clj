@@ -10,5 +10,10 @@
 
   (it "should run a multi-line example"
     (inc 2)
-    (=> (inc 2) should = 3)))
+    (=> (inc 2) should = 3))
+
+  (it "should run a multi-expectation example"
+    (=> 1 should = 1)
+    (=> 2 should = 2)))
+
 )

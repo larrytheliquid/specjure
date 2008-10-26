@@ -1,4 +1,6 @@
 ;;; Data structures
+(def *failed-expectations*)
+
 (defstruct example-group :type :description :examples)
 (defmacro create-example-group [description examples]
   `(struct example-group :example-group ~description ~examples))
@@ -10,8 +12,6 @@
 (defstruct expectation :type :expected :actual :result)
 (defmacro create-expectation [expected actual]
   `(struct expectation :expectation ~expected ~actual))
-
-(def *failed-expectations*)
 
 (defmulti verify :type)
 (defmethod verify :example-group [example-group]
