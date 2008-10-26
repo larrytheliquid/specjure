@@ -11,6 +11,8 @@
 (defmacro create-expectation [expected actual]
   `(struct expectation :expectation ~expected ~actual))
 
+(def *failed-expectations*)
+
 (defmulti verify :type)
 (defmethod verify :example-group [example-group]
   (printf "%n%s%n"(:description example-group))
@@ -20,9 +22,9 @@
        (map verify (:examples example-group))))
 
 (defmethod verify :example [example]
-  (let [failed-expectation (verify (:behavior example))]
-    (printf "- %s%s%n" (:description example) (if failed-expectation "" " FAILED"))
-    (assoc example :failed-expectation failed-expectation)))
+  (let [failed-expectations ((:behavior example))]
+    (printf "- %s%s%n" (:description example) (if (empty? failed-expectations) "" " FAILED"))
+    (assoc example :failed-expectations failed-expectations)))
 
 (defmethod verify :expectation [expectation]
   (= (:expected expectation) (:actual expectation)))
@@ -32,13 +34,16 @@
   `(create-example-group ~description (list ~@body)))
 
 (defmacro it [description & behavior]
-  `(create-example ~description (do ~@behavior)))
+  `(create-example ~description (fn [] (binding [*failed-expectations* []]
+					 ~@behavior
+					 *failed-expectations*))))
 
 (defmacro => [expected should matcher actual]
-  `(create-expectation ~expected ~actual))
-
+  `(when-not (= ~expected ~actual) 
+     (set! *failed-expectations*
+	   (conj *failed-expectations* (create-expectation ~expected ~actual)))))
 (defn run-examples [& example-groups]
   (let [examples (mapcat verify example-groups)
 	examples-count (count examples)
-	failures-count (count (filter :failed-expectation examples))]
+	failures-count (count (filter #(not (empty? (:failed-expectations %))) examples))]
     (printf "%n%s Examples, %s Failures%n" examples-count failures-count)))
