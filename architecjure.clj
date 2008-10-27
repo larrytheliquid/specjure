@@ -36,5 +36,10 @@
   (= (:expected expectation) (:actual expectation)))
 
 ;;; Utilities
+(defn flatten [x]
+  (let [s? #(instance? clojure.lang.Sequential %)]
+    (filter (complement s?)
+	    (tree-seq s? seq x))))
+
 (defmacro push! [coll x]
   (list 'set! coll (list 'conj coll x)))
