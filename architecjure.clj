@@ -1,5 +1,5 @@
 ;;; Data structures
-(def *failed-expectations*)
+(def *unsatisfied-expectations*)
 (defstruct requirement :description :behavior)
 (defstruct expectation :expected :actual)
 
@@ -20,28 +20,28 @@
 	  (flatten (list ~@body)))))
 
 (defmacro it [description & behavior]
-  `(struct requirement ~description (fn [] (binding [*failed-expectations* []]
+  `(struct requirement ~description (fn [] (binding [*unsatisfied-expectations* []]
 					 ~@behavior
-					 *failed-expectations*))))
+					 *unsatisfied-expectations*))))
 
 (defmacro => [expected should matcher actual]
   `(let [expectation# (struct expectation ~expected ~actual)]
      (when-not (satisfied? expectation#)
-       (push! *failed-expectations* expectation#))))
+       (push! *unsatisfied-expectations* expectation#))))
 
 (defmacro verify-requirements [& body]
   `(let [requirements# (map verify (concat ~@body))
 	 requirements-count# (count requirements#)
-	 failures-count# (count (filter :failed-expectations requirements#))]
-     (printf "%n%s Requirements, %s Failures%n" requirements-count# failures-count#)))
+	 unsatisfied-count# (count (filter :unsatisfied-expectations requirements#))]
+     (printf "%n%s Requirements, %s Unsatisfied%n" requirements-count# unsatisfied-count#)))
 
 ;;; Verification
 (defn verify [requirement]
-  (let [failed-expectations ((:behavior requirement)) 
-	requirement-satisfied? (empty? failed-expectations)]
-    (printf "%s%s%n" (:description requirement) (if requirement-satisfied? "" " (FAILED)"))
+  (let [unsatisfied-expectations ((:behavior requirement))
+	requirement-satisfied? (empty? unsatisfied-expectations)]
+    (printf "%s%s%n" (:description requirement) (if requirement-satisfied? "" " (UNSATISFIED)"))
     (if requirement-satisfied? requirement 
-	(assoc requirement :failed-expectations failed-expectations))))
+	(assoc requirement :unsatisfied-expectations unsatisfied-expectations))))
 
 (defn satisfied? [expectation]
   (= (:expected expectation) (:actual expectation)))
