@@ -23,4 +23,20 @@
 (describe "describe, with examples in functions"
   (it-function))
 
+(describe "describe, with root level"
+  (it "should run examples in the root level"
+    (=> 1 should = 1))
+  
+  (describe "with nesting"
+    (it "should run examples in a nested level"
+      (=> 1 should = 1))
+
+    (describe "with deeper nesting"
+      (it "should run examples in the deepest level"
+	(=> 1 should = 1))))
+
+  (describe "with separate nesting"
+    (it "should run separately nested examples"
+      (=> 1 should = 1))))
+
 )

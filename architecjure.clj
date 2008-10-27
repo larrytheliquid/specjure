@@ -8,7 +8,7 @@
 (defmacro describe [description & body]
   `(map (fn [example#]
 	  (assoc example# :description (str ~description " " (:description example#))))
-	(list ~@body)))
+	(flatten (list ~@body))))
 
 (defmacro it [description & behavior]
   `(struct example ~description (fn [] (binding [*failed-expectations* []]
