@@ -4,14 +4,18 @@
 (defstruct expectation :expected :actual)
 
 ;;; Data structure modifiers
+(def describe-option-map
+     {:description :description
+      :wrap-each :behavior})
 (def describe-fn-map
      {:description (fn [new-value old-value] (str new-value " " old-value))
-      :behavior (fn [new-value old-value] (new-value old-value))})
+      :wrap-each (fn [new-value old-value] (new-value old-value))})
 
 (defn describe-example [options example]
-  (apply assoc example (mapcat (fn [option] [option ((option describe-fn-map) 
-						     (option options) 
-						     (option example))])
+  (apply assoc example (mapcat (fn [option] [(option describe-option-map)
+					     ((option describe-fn-map) 
+					      (option options) 
+					      ((option describe-option-map) example))])
 			       (keys options))))
 
 ;;; Public interface

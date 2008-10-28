@@ -24,7 +24,7 @@
   (it-function))
 
 (describe {:description "describe, with root level"
-	   :behavior (fn [example] `(let [~'my-var 1] ~example))}
+	   :wrap-each (fn [example] `(let [~'my-var 1] ~example))}
   (it "should run examples in the root level"
     (=> my-var should = 1))
   
@@ -33,7 +33,7 @@
       (=> my-var should = 1))
 
     (describe {:description "with deeper nesting"
-	       :behavior (fn [example] `(let [~'my-var (inc ~'my-var)] ~example))}
+	       :wrap-each (fn [example] `(let [~'my-var (inc ~'my-var)] ~example))}
       (it "should run examples in the deepest level"
 	(=> my-var should = 2))))
 
