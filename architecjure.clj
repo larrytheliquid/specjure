@@ -20,9 +20,9 @@
 	  (flatten (list ~@body)))))
 
 (defmacro it [description & behavior]
-  `(struct example ~description (fn [] (binding [*failed-expectations* []]
+  `(struct example ~description '(binding [*failed-expectations* []]
 					 ~@behavior
-					 *failed-expectations*))))
+					 *failed-expectations*)))
 
 (defmacro => [expected should matcher actual]
   `(let [expectation# (struct expectation ~expected ~actual)]
@@ -37,7 +37,7 @@
 
 ;;; Verification
 (defn check [example]
-  (let [failed-expectations ((:behavior example))
+  (let [failed-expectations (eval (:behavior example))
 	example-passed? (empty? failed-expectations)]
     (printf "%s%s%n" (:description example) (if example-passed? "" " (FAILED)"))
     (if example-passed? example 
