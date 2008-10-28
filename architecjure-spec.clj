@@ -1,48 +1,48 @@
 (load-file "architecjure.clj")
 
 (defn it-function []
-  (it "should run requirement when called inside an architect"
+  (it "should run example when called inside an describe"
     (=> (* 4 5 6) should = 120)))
 
-(verify-requirements
+(check-examples
 
-(architect "architect, without requirements")
+(describe "describe, without examples")
 
-(architect "architect, with requirements"
-  (it "should run a single-line requirement"
+(describe "describe, with examples"
+  (it "should run a single-line example"
     (=> (concat [1 2] [3 4]) should = [1 2 3 4]))
 
-  (it "should run a multi-line requirement"
+  (it "should run a multi-line example"
     (inc 2)
     (=> (inc 2) should = 3))
 
-  (it "should run a multi-expectation requirement"
+  (it "should run a multi-expectation example"
     (=> 1 should = 1)
     (=> 2 should = 2)))
 
-(architect "architect, with requirements in functions"
+(describe "describe, with examples in functions"
   (it-function))
 
-(architect "architect, with root level"
-  (it "should run requirements in the root level"
+(describe "describe, with root level"
+  (it "should run examples in the root level"
     (=> 1 should = 1))
   
-  (architect "with nesting"
-    (it "should run requirements in a nested level"
+  (describe "with nesting"
+    (it "should run examples in a nested level"
       (=> 1 should = 1))
 
-    (architect "with deeper nesting"
-      (it "should run requirements in the deepest level"
+    (describe "with deeper nesting"
+      (it "should run examples in the deepest level"
 	(=> 1 should = 1))))
 
-  (architect "with separate nesting"
-    (it "should run separately nested requirements"
+  (describe "with separate nesting"
+    (it "should run separately nested examples"
       (=> 1 should = 1))))
 
-(architect "architect-requirement, with description"
-  (it "should return the requirement prepended by the description"
-    (let [requirement (struct requirement "description")
-	  architected-requirement (architect-requirement {:description "modified"} requirement)]
-      (=> (:description architected-requirement) should = "modified description"))))
+(describe "describe-example, with description"
+  (it "should return the example prepended by the description"
+    (let [example (struct example "description")
+	  describeed-example (describe-example {:description "modified"} example)]
+      (=> (:description describeed-example) should = "modified description"))))
 
 )

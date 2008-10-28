@@ -1,49 +1,49 @@
 ;;; Data structures
-(def *unsatisfied-expectations*)
-(defstruct requirement :description :behavior)
+(def *failed-expectations*)
+(defstruct example :description :behavior)
 (defstruct expectation :expected :actual)
 
 ;;; Data structure modifiers
-(def architect-fn-map
+(def describe-fn-map
      {:description (fn [new old] (str new " " old))})
 
-(defn architect-requirement [options requirement]
-  (apply assoc requirement (mapcat (fn [option] [option ((option architect-fn-map) 
+(defn describe-example [options example]
+  (apply assoc example (mapcat (fn [option] [option ((option describe-fn-map) 
 						     (option options) 
-						     (option requirement))])
+						     (option example))])
 			       (keys options))))
 
 ;;; Public interface
-(defmacro architect [options & body]
+(defmacro describe [options & body]
   `(let [options# (if (string? ~options) {:description ~options} ~options)]
-     (map (fn [requirement#] (architect-requirement options# requirement#)) 
+     (map (fn [example#] (describe-example options# example#)) 
 	  (flatten (list ~@body)))))
 
 (defmacro it [description & behavior]
-  `(struct requirement ~description (fn [] (binding [*unsatisfied-expectations* []]
+  `(struct example ~description (fn [] (binding [*failed-expectations* []]
 					 ~@behavior
-					 *unsatisfied-expectations*))))
+					 *failed-expectations*))))
 
 (defmacro => [expected should matcher actual]
   `(let [expectation# (struct expectation ~expected ~actual)]
-     (when-not (satisfied? expectation#)
-       (push! *unsatisfied-expectations* expectation#))))
+     (when-not (passed? expectation#)
+       (push! *failed-expectations* expectation#))))
 
-(defmacro verify-requirements [& body]
-  `(let [requirements# (map verify (concat ~@body))
-	 requirements-count# (count requirements#)
-	 unsatisfied-count# (count (filter :unsatisfied-expectations requirements#))]
-     (printf "%n%s Requirements, %s Unsatisfied%n" requirements-count# unsatisfied-count#)))
+(defmacro check-examples [& body]
+  `(let [examples# (map check (concat ~@body))
+	 examples-count# (count examples#)
+	 failures-count# (count (filter :failed-expectations examples#))]
+     (printf "%n%s Examples, %s Failures%n" examples-count# failures-count#)))
 
 ;;; Verification
-(defn verify [requirement]
-  (let [unsatisfied-expectations ((:behavior requirement))
-	requirement-satisfied? (empty? unsatisfied-expectations)]
-    (printf "%s%s%n" (:description requirement) (if requirement-satisfied? "" " (UNSATISFIED)"))
-    (if requirement-satisfied? requirement 
-	(assoc requirement :unsatisfied-expectations unsatisfied-expectations))))
+(defn check [example]
+  (let [failed-expectations ((:behavior example))
+	example-passed? (empty? failed-expectations)]
+    (printf "%s%s%n" (:description example) (if example-passed? "" " (FAILED)"))
+    (if example-passed? example 
+	(assoc example :failed-expectations failed-expectations))))
 
-(defn satisfied? [expectation]
+(defn passed? [expectation]
   (= (:expected expectation) (:actual expectation)))
 
 ;;; Utilities
