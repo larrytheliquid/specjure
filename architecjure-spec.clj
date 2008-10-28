@@ -23,21 +23,23 @@
 (describe "describe, with examples in functions"
   (it-function))
 
-(describe "describe, with root level"
+(describe {:description "describe, with root level"
+	   :behavior (fn [example] `(let [~'my-var 1] ~example))}
   (it "should run examples in the root level"
-    (=> 1 should = 1))
+    (=> my-var should = 1))
   
   (describe "with nesting"
     (it "should run examples in a nested level"
-      (=> 1 should = 1))
+      (=> my-var should = 1))
 
-    (describe "with deeper nesting"
+    (describe {:description "with deeper nesting"
+	       :behavior (fn [example] `(let [~'my-var (inc ~'my-var)] ~example))}
       (it "should run examples in the deepest level"
-	(=> 1 should = 1))))
+	(=> my-var should = 2))))
 
   (describe "with separate nesting"
     (it "should run separately nested examples"
-      (=> 1 should = 1))))
+      (=> my-var should = 1))))
 
 (describe "describe-example, with description"
   (it "should return the example prepended by the description"

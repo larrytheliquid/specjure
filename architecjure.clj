@@ -5,7 +5,8 @@
 
 ;;; Data structure modifiers
 (def describe-fn-map
-     {:description (fn [new old] (str new " " old))})
+     {:description (fn [new-value old-value] (str new-value " " old-value))
+      :behavior (fn [new-value old-value] (new-value old-value))})
 
 (defn describe-example [options example]
   (apply assoc example (mapcat (fn [option] [option ((option describe-fn-map) 
