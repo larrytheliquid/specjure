@@ -29,7 +29,7 @@
 					 ~@behavior
 					 *failed-expectations*)))
 
-(defmacro => [expected should matcher actual]
+(defmacro => [actual should matcher expected]
   `(let [expectation# (struct expectation ~expected ~actual)]
      (when-not (passed? expectation#)
        (push! *failed-expectations* expectation#))))
@@ -38,7 +38,13 @@
   `(let [examples# (map check (concat ~@body))
 	 examples-count# (count examples#)
 	 failures-count# (count (filter :failed-expectations examples#))]
-     (printf "%n%s Examples, %s Failures%n" examples-count# failures-count#)))
+     (printf "%n%s Examples, %s Failures%n" examples-count# failures-count#)
+     (doseq failed-example# (filter :failed-expectations examples#)
+       (doseq failed-expectation# (:failed-expectations failed-example#)
+	 (printf "%n'%s' FAILED%nexpected: %s%ngot: %s (using =)%n" 
+	       (:description failed-example#)
+	       (:expected failed-expectation#)
+	       (:actual failed-expectation#))))))
 
 ;;; Verification
 (defn check [example]
