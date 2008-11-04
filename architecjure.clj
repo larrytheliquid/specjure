@@ -3,29 +3,15 @@
 (defstruct example :description :behavior)
 (defstruct expectation :expected :actual)
 
-;;; Data structure modifiers
-(def describe-option-map
-     {:description :description
-      :wrap-each :behavior})
-(def describe-fn-map
-     {:description (fn [new-value old-value] (str new-value " " old-value))
-      :wrap-each (fn [new-value old-value] (new-value old-value))})
-
-(defn describe-example [options example]
-  (apply assoc example (mapcat (fn [option] [(option describe-option-map)
-					     ((option describe-fn-map) 
-					      (option options) 
-					      ((option describe-option-map) example))])
-			       (keys options))))
-
 ;;; Public interface
-(defmacro describe [options & body]
-  `(let [options# (if (string? ~options) {:description ~options} ~options)]
-     (map (fn [example#] (describe-example options# example#)) 
+(defmacro describe [description bindings & body]
+  `(let [~@bindings]
+     (map (fn [example#] 
+	    (assoc example# :description (str ~description " " (:description example#)))) 
 	  (flatten (list ~@body)))))
 
 (defmacro it [description & behavior]
-  `(struct example ~description '(binding [*failed-expectations* []]
+  `(struct example ~description #(binding [*failed-expectations* []]
 					 ~@behavior
 					 *failed-expectations*)))
 
@@ -48,7 +34,7 @@
 
 ;;; Verification
 (defn check [example]
-  (let [failed-expectations (eval (:behavior example))
+  (let [failed-expectations ((:behavior example))
 	example-passed? (empty? failed-expectations)]
     (printf "%s%s%n" (:description example) (if example-passed? "" " (FAILED)"))
     (if example-passed? example 
