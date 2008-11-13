@@ -1,7 +1,7 @@
-(load-file "architecjure.clj")
+(load-file "specjure.clj")
 
 (defn it-function []
-  (it "should run example when called inside an describe"
+  (it "should run example when called inside a describe"
     (=> (* 4 5 6) should = 120)))
 
 (check-examples
