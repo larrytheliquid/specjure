@@ -39,4 +39,19 @@
     (it "should run separately nested examples"
       (should = my-var 1))))
 
+(describe "should, with the = matcher" []
+  (describe "with equal arguments" []
+    (it "should be true"
+      (should = 3 3))))
+
+(describe "should, with the be-false matcher" []
+  (describe "with false" []
+    (it "should be true"
+      (should be-false false))))
+
+(describe "should, with the be-true matcher" []
+  (describe "with true" []
+    (it "should be true"
+      (should be-true true))))
+
 )

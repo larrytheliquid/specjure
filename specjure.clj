@@ -15,10 +15,15 @@
 					 ~@behavior
 					 *failed-expectations*)))
 
-(defmacro should [matcher actual expected]
-  `(let [expectation# (struct expectation ~expected ~actual)]
+(defmacro should [matcher & arguments]
+  `(let [expectation# (apply struct expectation (parse-matcher '~matcher ~@arguments))]
      (when-not (passed? expectation#)
        (push! *failed-expectations* expectation#))))
+
+(defn parse-matcher [matcher & arguments]
+  (cond (= matcher '=) arguments
+	(= matcher 'be-false) [(first arguments) false]
+	(= matcher 'be-true) [(first arguments) true]))
 
 (defmacro check-examples [& body]
   `(let [examples# (map check (concat ~@body))
