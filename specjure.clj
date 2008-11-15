@@ -4,8 +4,8 @@
 (defstruct expectation :expected :actual)
 
 ;;; Public interface
-(defmacro describe [description bindings & body]
-  `(let [~@bindings]
+(defmacro describe [description options & body]
+  `(let [~@options]
      (map (fn [example#] 
 	    (assoc example# :description (str ~description " " (:description example#)))) 
 	  (flatten (list ~@body)))))
@@ -15,7 +15,7 @@
 					 ~@behavior
 					 *failed-expectations*)))
 
-(defmacro => [actual should matcher expected]
+(defmacro should [matcher actual expected]
   `(let [expectation# (struct expectation ~expected ~actual)]
      (when-not (passed? expectation#)
        (push! *failed-expectations* expectation#))))
