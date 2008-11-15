@@ -54,4 +54,9 @@
     (it "should be true"
       (should be-true true))))
 
+(describe "should, with a be-predicate? matcher" []
+  (describe "with pos? and a positive number" []
+    (it "should be true"
+      (should be-pos 3))))
+
 )

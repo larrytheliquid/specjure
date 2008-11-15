@@ -22,8 +22,9 @@
 
 (defn parse-matcher [matcher & arguments]
   (cond (= matcher '=) arguments
-	(= matcher 'be-false) [(first arguments) false]
-	(= matcher 'be-true) [(first arguments) true]))
+	(= (symbol (apply str (take 3 (str matcher))))  'be-) 
+	  [(apply (eval (symbol (apply str 
+				       (conj (vec (drop 3 (str matcher))) \?)))) arguments) true]))
 
 (defmacro check-examples [& body]
   `(let [examples# (map check (concat ~@body))
