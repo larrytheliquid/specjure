@@ -1,7 +1,7 @@
 ;;; Data structures
 (def *failed-expectations*)
 (defstruct example :description :behavior)
-(defstruct expectation :expected :actual)
+(defstruct expectation :comparator :expected :actual)
 
 ;;; Public interface
 (defmacro describe [description options & body]
@@ -16,7 +16,12 @@
 					 *failed-expectations*)))
 
 (defmacro should [matcher & arguments]
-  `(let [expectation# (apply struct expectation (parse-matcher '~matcher ~@arguments))]
+  `(let [expectation# (apply struct expectation = (parse-matcher '~matcher ~@arguments))]
+     (when-not (passed? expectation#)
+       (push! *failed-expectations* expectation#))))
+
+(defmacro should-not [matcher & arguments]
+  `(let [expectation# (apply struct expectation (complement =) (parse-matcher '~matcher ~@arguments))]
      (when-not (passed? expectation#)
        (push! *failed-expectations* expectation#))))
 
@@ -47,7 +52,7 @@
 	(assoc example :failed-expectations failed-expectations))))
 
 (defn passed? [expectation]
-  (= (:expected expectation) (:actual expectation)))
+  ((:comparator expectation) (:expected expectation) (:actual expectation)))
 
 ;;; Utilities
 (defn flatten [x]
