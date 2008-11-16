@@ -83,4 +83,9 @@
   (it "should include the stringified symbol in the description"
     (should = 1 1)))
 
+(describe describe []
+  (describe "with a symbol and a nested description" []
+    (it "should include the stringified symbol in the description"
+      (should = 1 1))))
+
 )
