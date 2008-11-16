@@ -79,4 +79,8 @@
     (it "should be true"
       (should-not be-pos -3))))
 
+(describe describe "with a symbol before the description" []
+  (it "should include the stringified symbol in the description"
+    (should = 1 1)))
+
 )

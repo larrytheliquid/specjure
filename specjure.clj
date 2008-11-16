@@ -5,7 +5,21 @@
 
 ;;; Public interface
 (defmacro describe [description options & body]
-  `(let [~@options]
+  (if (symbol? description) 
+    (let [description (str description " " options)
+	  options (first body)
+	  body (rest body)]
+      `(let [~@options]
+	 (map (fn [example#] 
+		(assoc example# :description (str ~description " " (:description example#)))) 
+	      (flatten (list ~@body)))))
+    `(let [~@options]
+       (map (fn [example#] 
+	      (assoc example# :description (str ~description " " (:description example#)))) 
+	    (flatten (list ~@body))))))
+
+(defn describe-macroexpansion []
+  '(let [~@options]
      (map (fn [example#] 
 	    (assoc example# :description (str ~description " " (:description example#)))) 
 	  (flatten (list ~@body)))))
