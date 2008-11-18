@@ -7,6 +7,11 @@
 (defmacro push! [coll x]
   (list 'set! coll (list 'conj coll x)))
 
+(defn qualified-sym [sym]
+  (if (. (str sym) startsWith (str (ns-name *ns*) "/"))
+    sym
+    (str (ns-name *ns*) "/" sym)))
+
 ;;; Data structures
 (def *failed-expectations*)
 (defstruct example :description :behavior)
@@ -24,15 +29,15 @@
 (defmacro describe [desc & body]
   (if (symbol? desc)
     (if (string? (first body))
-      `(-describe ~(str desc " " (first body)) ~@(rest body))      
-      `(-describe ~(str desc) ~@body))
+      `(-describe ~(str (qualified-sym desc) " " (first body)) ~@(rest body))      
+      `(-describe ~(str (qualified-sym desc)) ~@body))
     `(-describe ~desc ~@body)))
 
 (defmacro describe-let [desc options & body]
   (if (symbol? desc)
     (if (vector? (first body))      
-      `(let [~@(first body)] (-describe ~(str desc " " options) ~@(rest body)))
-      `(-describe ~(str desc) ~@body))
+      `(let [~@(first body)] (-describe ~(str (qualified-sym desc) " " options) ~@(rest body)))
+      `(-describe ~(str (qualified-sym desc)) ~@body))
     `(let [~@options] (-describe ~desc ~@body))))
 
 (defmacro it [description & behavior]

@@ -6,9 +6,9 @@
 
 (check-examples
 
-(describe specjure/describe "without examples")
+(describe describe "without examples")
 
-(describe specjure/describe "with examples"
+(describe describe "with examples"
   (it "should run a single-line example"
     (should = (concat [1 2] [3 4]) [1 2 3 4]))
 
@@ -20,10 +20,10 @@
     (should = 1 1)
     (should = 2 2)))
 
-(describe specjure/describe "with examples in functions"
+(describe describe "with examples in functions"
   (it-function))
 
-(describe-let specjure/describe-let "with root level" [my-var 1] 
+(describe-let describe-let "with root level" [my-var 1] 
   (it "should run examples in the root level"
     (should = my-var 1))
   
@@ -39,42 +39,42 @@
     (it "should run separately nested examples"
       (should = my-var 1))))
 
-(describe specjure/should "with the = matcher"
+(describe should "with the = matcher"
   (describe "with equal arguments"
     (it "should be true"
       (should = 3 3))))
 
-(describe specjure/should "with the be-false matcher"
+(describe should "with the be-false matcher"
   (describe "with false"
     (it "should be true"
       (should be-false false))))
 
-(describe specjure/should "with the be-true matcher"
+(describe should "with the be-true matcher"
   (describe "with true"
     (it "should be true"
       (should be-true true))))
 
-(describe specjure/should "with a be-predicate matcher"
+(describe should "with a be-predicate matcher"
   (describe "with pos? and a positive number"
     (it "should be true"
       (should be-pos 3))))
 
-(describe specjure/should-not "with the = matcher"
+(describe should-not "with the = matcher"
   (describe "with unequal arguments"
     (it "should be true"
       (should-not = 3 5))))
 
-(describe specjure/should-not "with the be-false matcher"
+(describe should-not "with the be-false matcher"
   (describe "with true"
     (it "should be true"
       (should-not be-false true))))
 
-(describe specjure/should-not "with the be-true matcher"
+(describe should-not "with the be-true matcher"
   (describe "with false"
     (it "should be true"
       (should-not be-true false))))
 
-(describe specjure/should-not "with a be-predicate matcher"
+(describe should-not "with a be-predicate matcher"
   (describe "with pos? and a negative number"
     (it "should be true"
       (should-not be-pos -3))))
