@@ -1,28 +1,39 @@
+;;; Utilities
+(defn flatten [x]
+  (let [s? #(instance? clojure.lang.Sequential %)]
+    (filter (complement s?)
+	    (tree-seq s? seq x))))
+
+(defmacro push! [coll x]
+  (list 'set! coll (list 'conj coll x)))
+
 ;;; Data structures
 (def *failed-expectations*)
 (defstruct example :description :behavior)
 (defstruct expectation :comparator :expected :actual)
 
-;;; Public interface
-(defmacro describe [description options & body]
-  (if (symbol? description) 
-    (let [description (str description " " options)
-	  options (first body)
-	  body (rest body)]
-      `(let [~@options]
-	 (map (fn [example#] 
-		(assoc example# :description (str ~description " " (:description example#)))) 
-	      (flatten (list ~@body)))))
-    `(let [~@options]
-       (map (fn [example#] 
-	      (assoc example# :description (str ~description " " (:description example#)))) 
-	    (flatten (list ~@body))))))
+;;; TODO: Make "it" defined functions, like fact does
+;;; TODO: See how compojure includes fact (ie: rubygem, git submodule, etc)
 
-(defn describe-macroexpansion []
-  '(let [~@options]
-     (map (fn [example#] 
-	    (assoc example# :description (str ~description " " (:description example#)))) 
-	  (flatten (list ~@body)))))
+;;; Public interface
+(defmacro -describe [desc & body]
+  `(map (fn [example#] 
+	  (assoc example# :description (str ~desc " " (:description example#)))) 
+	(flatten (list ~@body))))
+
+(defmacro describe [desc & body]
+  (if (symbol? desc)
+    (if (string? (first body))
+      `(-describe ~(str desc " " (first body)) ~@(rest body))      
+      `(-describe ~(str desc) ~@body))
+    `(-describe ~desc ~@body)))
+
+(defmacro describe-let [desc options & body]
+  (if (symbol? desc)
+    (if (vector? (first body))      
+      `(let [~@(first body)] (-describe ~(str desc " " options) ~@(rest body)))
+      `(-describe ~(str desc) ~@body))
+    `(let [~@options] (-describe ~desc ~@body))))
 
 (defmacro it [description & behavior]
   `(struct example ~description #(binding [*failed-expectations* []]
@@ -67,12 +78,3 @@
 
 (defn passed? [expectation]
   ((:comparator expectation) (:expected expectation) (:actual expectation)))
-
-;;; Utilities
-(defn flatten [x]
-  (let [s? #(instance? clojure.lang.Sequential %)]
-    (filter (complement s?)
-	    (tree-seq s? seq x))))
-
-(defmacro push! [coll x]
-  (list 'set! coll (list 'conj coll x)))
