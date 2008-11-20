@@ -1,44 +1,18 @@
-;;; Utilities
-(defn flatten [x]
-  (let [s? #(instance? clojure.lang.Sequential %)]
-    (filter (complement s?)
-	    (tree-seq s? seq x))))
-
-(defmacro push! [coll x]
-  (list 'set! coll (list 'conj coll x)))
-
-(defn qualified-sym [sym]
-  (if (. (str sym) startsWith (str (ns-name *ns*) "/"))
-    sym
-    (str (ns-name *ns*) "/" sym)))
+;;; TODO: Somehow aggregate examples (ie: as functions, or in a binding var)
 
 ;;; Data structures
 (def *failed-expectations*)
 (defstruct example :description :behavior)
 (defstruct expectation :comparator :expected :actual)
 
-;;; TODO: Make "it" defined functions, like fact does
-;;; TODO: See how compojure includes fact (ie: rubygem, git submodule, etc)
-
 ;;; Public interface
-(defmacro -describe [desc & body]
+(defmacro describe [desc & body]
   `(map (fn [example#] 
 	  (assoc example# :description (str ~desc " " (:description example#)))) 
 	(flatten (list ~@body))))
 
-(defmacro describe [desc & body]
-  (if (symbol? desc)
-    (if (string? (first body))
-      `(-describe ~(str (qualified-sym desc) " " (first body)) ~@(rest body))      
-      `(-describe ~(str (qualified-sym desc)) ~@body))
-    `(-describe ~desc ~@body)))
-
 (defmacro describe-let [desc options & body]
-  (if (symbol? desc)
-    (if (vector? (first body))      
-      `(let [~@(first body)] (-describe ~(str (qualified-sym desc) " " options) ~@(rest body)))
-      `(-describe ~(str (qualified-sym desc)) ~@body))
-    `(let [~@options] (-describe ~desc ~@body))))
+  `(let [~@options] (describe ~desc ~@body)))
 
 (defmacro it [description & behavior]
   `(struct example ~description #(binding [*failed-expectations* []]
@@ -83,3 +57,12 @@
 
 (defn passed? [expectation]
   ((:comparator expectation) (:expected expectation) (:actual expectation)))
+
+;;; Utilities
+(defn flatten [x]
+  (let [s? #(instance? clojure.lang.Sequential %)]
+    (filter (complement s?)
+	    (tree-seq s? seq x))))
+
+(defmacro push! [coll x]
+  (list 'set! coll (list 'conj coll x)))
