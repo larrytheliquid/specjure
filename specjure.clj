@@ -29,11 +29,14 @@
      (when-not (passed? expectation#)
        (push! *failed-expectations* expectation#))))
 
+(defn be-function [be-matcher]
+  (resolve (symbol (apply str 
+			  (conj (vec (drop 3 (str be-matcher))) \?)))))
+
 (defn parse-matcher [matcher & arguments]
   (cond (= matcher '=) arguments
 	(= (symbol (apply str (take 3 (str matcher))))  'be-) 
-	  [(apply (eval (symbol (apply str 
-				       (conj (vec (drop 3 (str matcher))) \?)))) arguments) true]))
+	[(apply (be-function matcher)  arguments) true]))
 
 (defmacro check-examples [& body]
   `(let [examples# (map check (concat ~@body))
