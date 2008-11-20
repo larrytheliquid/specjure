@@ -11,6 +11,7 @@
 
 ;;; Data structures
 (def *examples* (agent []))
+(def *describe-nests* [])
 (def *failed-expectations*)
 (defstruct example :description :behavior)
 (defstruct expectation :comparator :expected :actual)
@@ -28,18 +29,20 @@
 
 ;;; Public interface
 (defmacro describe [desc & body]
-  `(map (fn [example#] 
-	  (assoc example# :description (str ~desc " " (:description example#)))) 
-	(flatten (list ~@body))))
+  `(binding [*describe-nests* (concat *describe-nests* [~desc " "])]
+     (map (fn [example#] 
+	    (assoc example# :description (str ~desc " " (:description example#)))) 
+	  (flatten (list ~@body)))))
 
 (defmacro describe-let [desc options & body]
   `(let [~@options] (describe ~desc ~@body)))
 
 (defmacro it [description & behavior]
   `(let [example#
-	 (struct example ~description #(binding [*failed-expectations* []]
-						~@behavior
-						*failed-expectations*))]
+	 (struct example (str (reduce str *describe-nests*) ~description)
+		         #(binding [*failed-expectations* []]
+			    ~@behavior
+			    *failed-expectations*))]
      (send *examples* conj example#)
      example#))
 
@@ -76,17 +79,3 @@
 		   (:description failed-example)
 		   (:expected failed-expectation)
 		   (:actual failed-expectation)))))))
-
-;; (defmacro check-examples 
-;;   ([] `(do @*examples*))
-;;   ([body]
-;;   `(let [examples# (map check (concat ~@body))
-;; 	 examples-count# (count examples#)
-;; 	 failures-count# (count (filter :failed-expectations examples#))]
-;;      (printf "%n%s Examples, %s Failures%n" examples-count# failures-count#)
-;;      (doseq failed-example# (filter :failed-expectations examples#)
-;;        (doseq failed-expectation# (:failed-expectations failed-example#)
-;; 	 (printf "%n'%s' FAILED%nexpected: %s%ngot: %s (using =)%n" 
-;; 	       (:description failed-example#)
-;; 	       (:expected failed-expectation#)
-;; 	       (:actual failed-expectation#)))))))

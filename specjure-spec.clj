@@ -76,3 +76,5 @@
   (describe "with pos? and a negative number"
     (it "returns true"
       (should-not be-pos -3))))
+
+(check-examples)
