@@ -30,9 +30,7 @@
 ;;; Public interface
 (defmacro describe [desc & body]
   `(binding [*describe-nests* (concat *describe-nests* [~desc " "])]
-     (map (fn [example#] 
-	    (assoc example# :description (str ~desc " " (:description example#)))) 
-	  (flatten (list ~@body)))))
+     (flatten (list ~@body))))
 
 (defmacro describe-let [desc options & body]
   `(let [~@options] (describe ~desc ~@body)))
