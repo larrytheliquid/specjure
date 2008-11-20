@@ -1,4 +1,5 @@
 ;;; TODO: Somehow aggregate examples (ie: as functions, or in a binding var)
+(ns specjure)
 
 ;;; Data structures
 (def *failed-expectations*)

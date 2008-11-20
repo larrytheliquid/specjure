@@ -1,4 +1,5 @@
 (load-file "specjure.clj")
+(ns specjure)
 
 (defn it-function []
   (it "runs examples when called inside a describe"
