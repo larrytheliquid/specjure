@@ -1,11 +1,8 @@
-(load-file "specjure.clj")
 (ns specjure)
 
 (defn it-function []
   (it "runs examples when called inside a describe"
     (should = (* 4 5 6) 120)))
-
-(check-examples
 
 (describe "specjure/describe without examples")
 
@@ -79,5 +76,3 @@
   (describe "with pos? and a negative number"
     (it "returns true"
       (should-not be-pos -3))))
-
-)
