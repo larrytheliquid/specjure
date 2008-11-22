@@ -28,9 +28,20 @@
   ((:comparator expectation) (:expected expectation) (:actual expectation)))
 
 ;;; Public interface
-(defmacro describe [desc & body]
-  `(binding [*describe-nests* (concat *describe-nests* [~desc " "])]
-     (flatten (list ~@body))))
+(defmacro describe 
+  {:arglists '([fn-sym? description? (options*) body])} 
+  [arg1 arg2 & args]  
+  (let [;; describing a function
+	function-str (when (symbol? arg1) (str arg1))	
+	description (if (string? arg2) (str function-str " " arg2) function-str)
+	options (if (string? arg2) (first args) arg2)
+	body (if (string? arg2) (rest args) args)
+	;; describing something general
+	description (if (not function-str) arg1 description)
+	options (if (not function-str) arg2 options)
+	body (if (not function-str) args body)]
+    `(binding [*describe-nests* (concat *describe-nests* [~description " "])]
+       (flatten (list ~@body)))))
 
 (defmacro describe-let [desc options & body]
   `(let [~@options] (describe ~desc ~@body)))
@@ -77,3 +88,8 @@
 		   (:description failed-example)
 		   (:expected failed-expectation)
 		   (:actual failed-expectation)))))))
+
+(defn spec [path]
+  "Run examples in the specified file, or files ending in -spec
+  in a directory and its recursive subdirectories."
+  (load-file path) (check-examples))

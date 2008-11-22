@@ -1,6 +1,8 @@
 (ns specjure)
 
-(describe-let "specjure/describe-let with root level" [my-var 1] 
+(describe specjure/describe "with root level"
+  (:before [my-var 1]) 
+
   (it "runs examples in the root level"
     (should = my-var 1))
   
@@ -8,7 +10,9 @@
     (it "runs examples in a nested level"
       (should = my-var 1))
 
-    (describe-let "with deeper nesting" [my-var (inc my-var)]
+    (describe "with deeper nesting" 
+      (:before [my-var (inc my-var)])
+
       (it "runs examples in the deepest level"
 	(should = my-var 2))))
 
