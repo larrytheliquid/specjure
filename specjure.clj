@@ -11,7 +11,7 @@
 
 ;;; Data structures
 (def *examples* (agent []))
-(def *describe-nests* [])
+(def *desc-nests* [])
 (def *failed-expectations*)
 (defstruct example :description :behavior)
 (defstruct expectation :comparator :expected :actual)
@@ -27,7 +27,7 @@
 (defn passed? [expectation]
   ((:comparator expectation) (:expected expectation) (:actual expectation)))
 
-;;; describe options
+;;; desc options
 (defmulti option :option-name)
 (defmethod option :default [options]
   (:code options))
@@ -36,19 +36,19 @@
   `(let [~@(first (:option-value options))]
      ~(:code options)))
 
-(defn fn-ns-str [fn-sym]
+(defn sym-ns-str [sym]
   (let [ns-prefix (str (ns-name *ns*) "/")
-	fn-str (str fn-sym)]
-    (if (. fn-str (startsWith ns-prefix))
-      fn-str
-      (str ns-prefix fn-str))))
+	ns-str (str sym)]
+    (if (. ns-str (startsWith ns-prefix))
+      ns-str
+      (str ns-prefix ns-str))))
 
 ;;; Public interface
-(defmacro describe 
+(defmacro desc
   {:arglists '([fn-sym? description? (options*) body])} 
   [arg1 arg2 & args]  
   (let [;; describing a function
-	function-str (when (symbol? arg1) (fn-ns-str arg1))	
+	function-str (when (symbol? arg1) (sym-ns-str arg1))	
 	description (if (string? arg2) (str function-str " " arg2) function-str)
 	options (if (string? arg2) (first args) arg2)
 	body (if (string? arg2) (rest args) args)
@@ -59,12 +59,12 @@
     (option {:option-name (first options)
 	     :option-value (rest options)
 	     :code 
-	     `(binding [*describe-nests* (concat *describe-nests* [~description " "])]
+	     `(binding [*desc-nests* (concat *desc-nests* [~description " "])]
 		(flatten (list ~@body)))})))
 
 (defmacro it [description & body]
   `(let [example#
-	 (struct example (str (reduce str *describe-nests*) ~description)
+	 (struct example (str (reduce str *desc-nests*) ~description)
 		         #(binding [*failed-expectations* []]
 			    ~@body
 			    *failed-expectations*))]

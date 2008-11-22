@@ -1,12 +1,12 @@
 (ns specjure)
 
 (defn it-function []
-  (it "runs examples when called inside a describe"
+  (it "runs examples when called inside a desc"
     (should = (* 4 5 6) 120)))
 
-(describe describe "without examples" ())
+(desc desc "without examples" ())
 
-(describe describe "with examples" ()
+(desc desc "with examples" ()
   (it "runs a single-line example"
     (should = (concat [1 2] [3 4]) [1 2 3 4]))
 
@@ -18,5 +18,5 @@
     (should = 1 1)
     (should = 2 2)))
 
-(describe describe "with examples in functions" ()
+(desc desc "with examples in functions" ()
   (it-function))
