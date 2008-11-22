@@ -22,9 +22,9 @@
 ;;; TODO: Add file and line number to failing spec information
 
 (load-file "specjure.clj")
-(load-file "spec/describe-spec.clj")
-(load-file "spec/before-spec.clj")
-(load-file "spec/should-spec.clj")
-(load-file "spec/should-not-spec.clj")
+(load-file "spec/describe/default-spec.clj")
+(load-file "spec/describe/before-spec.clj")
+(load-file "spec/should/equal-spec.clj")
+(load-file "spec/should/be-predicate-spec.clj")
 
 (specjure/check-examples)

@@ -14,7 +14,7 @@
 (def *describe-nests* [])
 (def *failed-expectations*)
 (defstruct example :description :behavior)
-(defstruct expectation :comparator :expected :actual)
+(defstruct expectation :comparator :actual :expected)
 
 ;;; Verification
 (defn check [example]
@@ -45,6 +45,7 @@
 
 ;;; Public interface
 (defmacro describe 
+  "Describes a specification in the form of verifiable (executable) examples."
   {:arglists '([fn-sym? description? (options*) body])} 
   [arg1 arg2 & args]  
   (let [;; describing a function
