@@ -1,11 +1,11 @@
 (ns specjure)
 
-(desc should "with the = matcher" ()
-  (desc "with equal arguments" ()
+(describe should "with the = matcher" ()
+  (describe "with equal arguments" ()
     (it "passes example"
       (should = 3 3))))
 
-(desc should "with a be-predicate matcher" ()
-  (desc "that evaluates to true" ()
+(describe should "with a be-predicate matcher" ()
+  (describe "that evaluates to true" ()
     (it "passes example"
       (should be-pos 3))))

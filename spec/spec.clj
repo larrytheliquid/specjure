@@ -5,7 +5,7 @@
 ;;; TODO: Add clojure namespace functions to "be" predicate matchers
 ;;; TODO: should be-close
 ;;; TODO: README.markdown
-;;; TODO: Documentation, especially for desc
+;;; TODO: Documentation, especially for describe
 ;;; TODO: Raise error with nice message when not giving correct macro syntax, or using a non-existent option
 ;;; TODO: Use Exceptions for expectation failures
 ;;; TODO: Implement function versions of all macros for them to expand to
@@ -20,10 +20,9 @@
 ;;; TODO: Different reporting for pending, success, failure, exception, and expectation
 ;;; TODO: Parallel check-examples
 ;;; TODO: Add file and line number to failing spec information
-;;; TODO: Emacs highlighitng for desc/it, and their 2 space indentation (like defn)
 
 (load-file "specjure.clj")
-(load-file "spec/desc-spec.clj")
+(load-file "spec/describe-spec.clj")
 (load-file "spec/before-spec.clj")
 (load-file "spec/should-spec.clj")
 (load-file "spec/should-not-spec.clj")
