@@ -27,6 +27,7 @@
 (defn passed? [expectation]
   ((:comparator expectation) (:expected expectation) (:actual expectation)))
 
+;;; describe options
 (defmulti option :option-name)
 (defmethod option :default [options]
   (:code options))
@@ -35,12 +36,19 @@
   `(let [~@(first (:option-value options))]
      ~(:code options)))
 
+(defn fn-ns-str [fn-sym]
+  (let [ns-prefix (str (ns-name *ns*) "/")
+	fn-str (str fn-sym)]
+    (if (. fn-str (startsWith ns-prefix))
+      fn-str
+      (str ns-prefix fn-str))))
+
 ;;; Public interface
 (defmacro describe 
   {:arglists '([fn-sym? description? (options*) body])} 
   [arg1 arg2 & args]  
   (let [;; describing a function
-	function-str (when (symbol? arg1) (str arg1))	
+	function-str (when (symbol? arg1) (fn-ns-str arg1))	
 	description (if (string? arg2) (str function-str " " arg2) function-str)
 	options (if (string? arg2) (first args) arg2)
 	body (if (string? arg2) (rest args) args)

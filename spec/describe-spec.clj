@@ -4,9 +4,9 @@
   (it "runs examples when called inside a describe"
     (should = (* 4 5 6) 120)))
 
-(describe specjure/describe "without examples" ())
+(describe describe "without examples" ())
 
-(describe specjure/describe "with examples" ()
+(describe describe "with examples" ()
   (it "runs a single-line example"
     (should = (concat [1 2] [3 4]) [1 2 3 4]))
 
@@ -18,5 +18,5 @@
     (should = 1 1)
     (should = 2 2)))
 
-(describe specjure/describe "with examples in functions" ()
+(describe describe "with examples in functions" ()
   (it-function))

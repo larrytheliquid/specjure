@@ -1,6 +1,6 @@
 (ns specjure)
 
-(describe specjure/describe "with root level"
+(describe describe "with root level"
   (:before [my-var 1]) 
 
   (it "runs examples in the root level"
