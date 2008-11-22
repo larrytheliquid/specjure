@@ -27,6 +27,14 @@
 (defn passed? [expectation]
   ((:comparator expectation) (:expected expectation) (:actual expectation)))
 
+(defmulti option :option-name)
+(defmethod option :default [options]
+  (:code options))
+
+(defmethod option :before [options]
+  `(let [~@(first (:option-value options))]
+     ~(:code options)))
+
 ;;; Public interface
 (defmacro describe 
   {:arglists '([fn-sym? description? (options*) body])} 
@@ -36,21 +44,21 @@
 	description (if (string? arg2) (str function-str " " arg2) function-str)
 	options (if (string? arg2) (first args) arg2)
 	body (if (string? arg2) (rest args) args)
-	;; describing something general
+	;; describing anything else
 	description (if (not function-str) arg1 description)
 	options (if (not function-str) arg2 options)
 	body (if (not function-str) args body)]
-    `(binding [*describe-nests* (concat *describe-nests* [~description " "])]
-       (flatten (list ~@body)))))
+    (option {:option-name (first options)
+	     :option-value (rest options)
+	     :code 
+	     `(binding [*describe-nests* (concat *describe-nests* [~description " "])]
+		(flatten (list ~@body)))})))
 
-(defmacro describe-let [desc options & body]
-  `(let [~@options] (describe ~desc ~@body)))
-
-(defmacro it [description & behavior]
+(defmacro it [description & body]
   `(let [example#
 	 (struct example (str (reduce str *describe-nests*) ~description)
 		         #(binding [*failed-expectations* []]
-			    ~@behavior
+			    ~@body
 			    *failed-expectations*))]
      (send *examples* conj example#)
      example#))
