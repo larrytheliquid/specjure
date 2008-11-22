@@ -32,9 +32,12 @@
 (defmethod option :default [options]
   (:code options))
 
-(defmethod option :before [options]
-  `(let [~@(first (:option-value options))]
-     ~(:code options)))
+(defmethod option :before [{val :option-value code :code}]
+  (let [bindings (if (list? val) (first val) val)
+	body (when (list? val) (rest val))]
+    `(let [~@bindings]
+       ~@body
+       ~code)))
 
 (defn fn-ns-str [fn-sym]
   (let [ns-prefix (str (ns-name *ns*) "/")
@@ -58,7 +61,7 @@
 	options (if (not function-str) arg2 options)
 	body (if (not function-str) args body)]
     (option {:option-name (first options)
-	     :option-value (rest options)
+	     :option-value (second options)
 	     :code 
 	     `(binding [*describe-nests* (concat *describe-nests* [~description " "])]
 		(flatten (list ~@body)))})))
