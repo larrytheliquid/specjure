@@ -29,9 +29,6 @@
 
 ;;; describe options
 (defmulti option :option-name)
-(defmethod option :default [options]
-  (:code options))
-
 (defmethod option :before [{val :option-value code :code}]
   (let [bindings (if (list? val) (first val) val)
 	body (when (list? val) (rest val))]
@@ -60,11 +57,13 @@
 	description (if (not function-str) arg1 description)
 	options (if (not function-str) arg2 options)
 	body (if (not function-str) args body)]
-    (option {:option-name (first options)
-	     :option-value (second options)
-	     :code 
-	     `(binding [*describe-nests* (concat *describe-nests* [~description " "])]
-		(flatten (list ~@body)))})))
+    (reduce (fn [code [name value]]
+	      (option {:option-name name
+		       :option-value value
+		       :code code}))
+	    `(binding [*describe-nests* (concat *describe-nests* [~description " "])]
+	       (flatten (list ~@body)))
+	    (partition 2 options))))
 
 (defmacro it [description & body]
   `(let [example#
