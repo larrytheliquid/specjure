@@ -1,4 +1,3 @@
-;;; TODO: Maybe break up files into a lib directory
 ;;; TODO: Make appropriate functions private
 ;;; TODO: Support for vector/list versions of before, after, before-each, and after-each
 ;;; TODO: Add clojure namespace functions to "be" predicate matchers

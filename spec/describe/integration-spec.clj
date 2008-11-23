@@ -1,6 +1,6 @@
 (ns specjure)
 
-(describe describe "with mulitple options combined" 
+(describe describe "with multiple options combined" 
   (:before [my-var (inc my-var)]
    :before [my-var 1])
   
