@@ -16,11 +16,16 @@
 ;;; TODO: Add file and line number to failing spec information
 ;;; TODO: A sync-before, wrapping the before in dosync so you can use its body
 
-(load-file "specjure.clj")
-(load-file "spec/describe/default-spec.clj")
-(load-file "spec/describe/before-spec.clj")
-(load-file "spec/describe/integration-spec.clj")
-(load-file "spec/should/equal-spec.clj")
-(load-file "spec/should/be-predicate-spec.clj")
+(load-file "specjure/utilities/utilities.clj")
+(load-file "specjure/expectations/expectations.clj")
+(load-file "specjure/examples/examples.clj")
+(load-file "specjure/options/options.clj")
+(load-file "specjure/public/public.clj")
+
+(load-file "spec/describe/default_spec.clj")
+(load-file "spec/describe/before_spec.clj")
+(load-file "spec/describe/integration_spec.clj")
+(load-file "spec/should/equal_spec.clj")
+(load-file "spec/should/be_predicate_spec.clj")
 
 (specjure/check-examples)
