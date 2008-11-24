@@ -11,3 +11,12 @@
     `(let [~@bindings]
        ~@body
        ~code)))
+
+(defmethod option :before-each [{val :option-value code :code}]
+  (let [bindings (if (list? val) (first val) val)
+	body (when (list? val) (rest val))]
+    (map (fn [example]
+	   `(let [~@bindings]
+	      ~@body
+	      ~example)) 
+	 code)))

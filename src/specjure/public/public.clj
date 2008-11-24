@@ -4,7 +4,7 @@
 
 (defmacro describe 
   "Describes a specification in the form of verifiable (executable) examples."
-  {:arglists '([fn-sym? description? (options*) body])} 
+  {:arglists '([symbol? description? (options*) examples*])} 
   [arg1 arg2 & args]  
   (let [;; describing a function
 	function-str (when (symbol? arg1) (fn-ns-str arg1))	
