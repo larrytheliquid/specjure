@@ -12,16 +12,4 @@
 
   (it "runs multi-expectation examples"
     (should = 1 1)
-    (should = 2 2))
-  
-  (describe "that are nested" ()
-    (it "runs nested examples"
-      (should = 1 1))
-
-    (describe "deeply" ()
-      (it "runs deeply nested examples"
-	(should = true true))))
-
-  (describe "that are nested separately" ()
-    (it "runs separately nested examples"
-      (should = false false))))
+    (should = 2 2)))

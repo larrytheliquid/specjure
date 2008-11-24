@@ -1,6 +1,5 @@
 (ns specjure)
 (def *examples* (agent []))
-(def *describe-nests* [])
 (def *failed-expectations*)
 
 (defmacro describe 
@@ -15,18 +14,20 @@
 	;; describing anything else
 	description (if (not function-str) arg1 description)
 	options (if (not function-str) arg2 options)
-	body (if (not function-str) args body)]
+	body (if (not function-str) args body)
+	;; options
+	all-options `(~'*group-description* ~description)]
     (reduce (fn [code [name value]]
 	      (option {:option-name name
 		       :option-value value
 		       :code code}))
-	    `(binding [*describe-nests* (concat *describe-nests* [~description " "])]
-	       (flatten (list ~@body)))
+	    `(let [~@all-options]
+	      ~@body)
 	    (partition 2 options))))
 
 (defmacro it [description & body]
   `(let [example#
-	 (struct example (str (reduce str *describe-nests*) ~description)
+	 (struct example (str ~'*group-description* " " ~description)
 		         #(binding [*failed-expectations* []]
 			    ~@body
 			    *failed-expectations*))]
