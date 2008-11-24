@@ -1,5 +1,6 @@
 (ns specjure)
-(def *examples* (agent []))
+(def *example-groups* (agent []))
+(def *examples*)
 (def *failed-expectations*)
 
 (defmacro describe 
@@ -16,23 +17,21 @@
 	options (if (not function-str) arg2 options)
 	body (if (not function-str) args body)
 	;; options
+	each-options (concat options [:register-example-group true])
 	all-options `(~'*group-description* ~description)]
     (reduce (fn [code [name value]]
 	      (option {:option-name name
 		       :option-value value
 		       :code code}))
-	    `(let [~@all-options]
-	      ~@body)
-	    (partition 2 options))))
+	    `(let [~@all-options] ~@body)
+	    (partition 2 each-options))))
 
 (defmacro it [description & body]
-  `(let [example#
-	 (struct example (str ~'*group-description* " " ~description)
-		         #(binding [*failed-expectations* []]
-			    ~@body
-			    *failed-expectations*))]
-     (send *examples* conj example#)
-     example#))
+  `(push! *examples*
+	  (struct example (str ~'*group-description* " " ~description)
+		  #(binding [*failed-expectations* []]
+		     ~@body
+		     *failed-expectations*))))
 
 (defmacro should [matcher & arguments]
   `(let [expectation# (apply struct expectation = (parse-matcher '~matcher ~@arguments))]
@@ -45,10 +44,10 @@
        (push! *failed-expectations* expectation#))))
 
 (defn check-examples 
-  ([] (await *examples*) (check-examples @*examples*))
+  ([] (await *example-groups*) (check-examples @*example-groups*))
   ([body]
-     (send *examples* (fn [_] []))
-     (let [examples (map check body)
+     (send *example-groups* (fn [_] []))
+     (let [examples (map check (mapcat #(apply %) body))
 	   examples-count (count examples)
 	   failures-count (count (filter :failed-expectations examples))]
        (printf "%n%s Examples, %s Failures%n" examples-count failures-count)
