@@ -17,14 +17,14 @@
 	options (if (not function-str) arg2 options)
 	body (if (not function-str) args body)
 	;; options
-	each-options (concat options [:register-example-group true])
-	all-options `(~'*group-description* ~description)]
+	all-options (concat options [:register-example-group true])
+	each-options `(~'*group-description* ~description)]
     (reduce (fn [code [name value]]
 	      (option {:option-name name
 		       :option-value value
 		       :code code}))
-	    `(let [~@all-options] ~@body)
-	    (partition 2 each-options))))
+	    `(let [~@each-options] ~@body)
+	    (partition 2 all-options))))
 
 (defmacro it [description & body]
   `(push! *examples*
