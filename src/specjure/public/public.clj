@@ -16,13 +16,15 @@
 	options (if (not function-str) arg2 options)
 	body (if (not function-str) args body)
 	;; add default options
-	options (concat options [:add-description description
-				 :register-example-group description])]
+	options (concat [:parse-example true
+			 :add-description description]
+			options 
+			[:register-example-group description])]
     (reduce (fn [code [name value]]
 	      (option {:option-name name
 		       :option-value value
-		       :code code}))
-	    `(list ~@body)
+		       :code code}))	    
+	    body
 	    (partition 2 options))))
 
 (defmacro it [description & body]
@@ -43,7 +45,7 @@
 
 (defn check-examples 
   ([] (await *example-groups*) (check-examples @*example-groups*))
-  ([body]               
+  ([body]                    
      (send *example-groups* (fn [_] []))
      (let [examples (map check (mapcat #(check %) body))
 	   examples-count (count examples)
