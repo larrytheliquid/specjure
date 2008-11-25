@@ -1,12 +1,6 @@
 (ns specjure)
 (defmulti option :option-name)
 
-(defmethod option :register-example-group [{val :option-value code :code}]
-  `(send *example-groups* conj
-	 (struct example ::ExampleGroup
-		 ~val
-		 (fn [] ~code))))
-
 (defmethod option :parse-example [{code :code}]
   (vec (map (fn [example]	 	 
 	      `(let []
@@ -20,13 +14,6 @@
 			(str ~val " " (:description example#))))) 
 	    code)))
 
-(defmethod option :before [{val :option-value code :code}]
-  (let [bindings (if (list? val) (first val) val)
-	body (when (list? val) (rest val))]
-    `(let [~@bindings]
-       ~@body
-       ~code)))
-
 (defmethod option :before-each [{val :option-value code :code}]
   (let [bindings (if (list? val) (first val) val)
 	body (when (list? val) (rest val))]
@@ -35,3 +22,16 @@
 		   ~@body
 		   ~example)) 
 	      code))))
+
+(defmethod option :before [{val :option-value code :code}]
+  (let [bindings (if (list? val) (first val) val)
+	body (when (list? val) (rest val))]
+    `(let [~@bindings]
+       ~@body
+       ~code)))
+
+(defmethod option :register-example-group [{val :option-value code :code}]
+  `(send *example-groups* conj
+	 (struct example ::ExampleGroup
+		 ~val
+		 (fn [] ~code))))
