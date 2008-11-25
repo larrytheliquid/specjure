@@ -1,8 +1,9 @@
 (ns specjure)
 
 (describe describe "with multiple options combined" 
-  (:before [my-var (inc my-var)]
-   :before [my-var 1])
+  (:before-each [var1 1]
+   :before [var2 2])
   
   (it "applies every option to examples"
-    (should = my-var 2)))
+    (should = var1 1)
+    (should = var2 2)))
