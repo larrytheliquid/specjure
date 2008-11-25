@@ -15,20 +15,19 @@
 	description (if (not function-str) arg1 description)
 	options (if (not function-str) arg2 options)
 	body (if (not function-str) args body)
-	;; options
-	options (concat options [:register-example-group true])]
+	;; add default options
+	options (concat options [:add-description description
+				 :register-example-group description])]
     (reduce (fn [code [name value]]
 	      (option {:option-name name
 		       :option-value value
 		       :code code}))
-	    `(map (fn [e#] 
-		    (assoc e# :description (str ~description " " (:description e#)))) 
-		  (list ~@body))
+	    `(list ~@body)
 	    (partition 2 options))))
 
 (defmacro it [description & body]
-  (struct example description
-	  `#(binding [*failed-expectations* []]
+  `(struct example ::Example ~description
+	  #(binding [*failed-expectations* []]
 	      ~@body
 	      *failed-expectations*)))
 
@@ -44,9 +43,9 @@
 
 (defn check-examples 
   ([] (await *example-groups*) (check-examples @*example-groups*))
-  ([body]     
+  ([body]               
      (send *example-groups* (fn [_] []))
-     (let [examples (map check (mapcat #(apply %) body))
+     (let [examples (map check (mapcat #(check %) body))
 	   examples-count (count examples)
 	   failures-count (count (filter :failed-expectations examples))]
        (printf "%n%s Examples, %s Failures%n" examples-count failures-count)

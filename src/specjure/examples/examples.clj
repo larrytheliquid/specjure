@@ -1,8 +1,13 @@
 (ns specjure)
-(defstruct example :description :behavior)
+(defstruct example :tag :description :fn)
 
-(defn check [example]
-  (let [failed-expectations ((:behavior example))
+(defmulti check :tag)
+
+(defmethod check ::ExampleGroup [example-group]
+  ((:fn example-group)))
+
+(defmethod check ::Example [example]
+  (let [failed-expectations ((:fn example))
 	example-passed? (empty? failed-expectations)]
     (printf "%s%s%n" (:description example) (if example-passed? "" " (FAILED)"))
     (if example-passed? example 
