@@ -1,5 +1,5 @@
 (ns specjure)
-(def *examples* (agent []))
+(def *examples* (ref []))
 (def *description*)
 (def *wrappers*)
 (def *failed-expectations*)
@@ -22,11 +22,11 @@
        ~@body)))
 
 (defmacro it [description & body]
-  `(send *examples* conj
-	 (struct example ::Example (str *description* " " ~description)
-		 #(binding [*failed-expectations* []]
-		    ~@body
-		    *failed-expectations*))))
+  `(dosync (commute *examples* conj
+		    (struct example ::Example (str *description* " " ~description)
+			    #(binding [*failed-expectations* []]
+			       ~@body
+			       *failed-expectations*)))))
 
 (defn- _should [comparator matcher arguments]
   `(let [expectation# (apply struct expectation ~comparator (parse-matcher '~matcher ~@arguments))]
@@ -40,9 +40,9 @@
   (_should '(complement =) matcher arguments))
 
 (defn check-examples 
-  ([] (await *examples*) (check-examples @*examples*))
+  ([] (check-examples @*examples*))
   ([body]                    
-     (send *examples* (fn [_] []))
+     (dosync (ref-set *examples* []))
      (let [examples (map check body)
 	   examples-count (count examples)
 	   failures-count (count (filter :failed-expectations examples))]
