@@ -4,12 +4,8 @@
 (defn passed? [expectation]
   ((:comparator expectation) (:expected expectation) (:actual expectation)))
 
-(defn be-function [be-matcher]
-  (resolve (symbol (apply str 
-			  (conj (vec (drop 3 (str be-matcher))) \?)))))
-
 (defn parse-matcher [matcher & arguments]
   (cond (= matcher '=) arguments
-	(= (symbol (apply str (take 3 (str matcher))))  'be-) 
-	[(apply (be-function matcher)  arguments) true]))
+	(= matcher 'be-true) [true (not (not (first arguments)))]
+	(= matcher 'be-false) [false (not (not (first arguments)))]))
 

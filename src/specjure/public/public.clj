@@ -33,15 +33,16 @@
 	      ~@body
 	      *failed-expectations*)))
 
-(defmacro should [matcher & arguments]
-  `(let [expectation# (apply struct expectation = (parse-matcher '~matcher ~@arguments))]
+(defn- _should [comparator matcher arguments]
+  `(let [expectation# (apply struct expectation ~comparator (parse-matcher '~matcher ~@arguments))]
      (when-not (passed? expectation#)
        (push! *failed-expectations* expectation#))))
 
+(defmacro should [matcher & arguments]
+  (_should '= matcher arguments))
+
 (defmacro should-not [matcher & arguments]
-  `(let [expectation# (apply struct expectation (complement =) (parse-matcher '~matcher ~@arguments))]
-     (when-not (passed? expectation#)
-       (push! *failed-expectations* expectation#))))
+  (_should '(complement =) matcher arguments))
 
 (defn check-examples 
   ([] (await *example-groups*) (check-examples @*example-groups*))
