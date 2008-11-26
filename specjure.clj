@@ -1,9 +1,50 @@
 (ns specjure)
+
+;;; Utilities
+(defmacro push! [coll x]
+  (list 'set! coll (list 'conj coll x)))
+
+(defn fn-ns-str [fn-sym]
+  (let [ns-prefix (str (ns-name *ns*) "/")
+	fn-str (str fn-sym)]
+    (if (. fn-str (startsWith ns-prefix))
+      fn-str
+      (str ns-prefix fn-str))))
+
+;;; Data
 (def *examples* (ref []))
 (def *description*)
 (def *wrappers*)
 (def *failed-expectations*)
+(defstruct example :description :fn)
+(defstruct expectation :comparator :actual :expected)
 
+;;; Verification
+(defn passed? [expectation]
+  ((:comparator expectation) (:expected expectation) (:actual expectation)))
+
+(defn parse-matcher [matcher & arguments]
+  (cond (= matcher '=) arguments
+	(= matcher 'be-true) [true (not (not (first arguments)))]
+	(= matcher 'be-false) [false (not (not (first arguments)))]))
+
+(defn check [example]
+  (let [failed-expectations ((:fn example))
+	example-passed? (empty? failed-expectations)]
+    (printf "%s%s%n" (:description example) (if example-passed? "" " (FAILED)"))
+    (if example-passed? example 
+	(assoc example :failed-expectations failed-expectations))))
+
+;;; Options
+(defmulti option :option-name)
+(defmethod option :before [{val :option-value code :code}]
+  (let [bindings (if (list? val) (first val) val)
+	body (when (list? val) (rest val))]
+    `(let [~@bindings]
+       ~@body
+       ~code)))
+
+;;; Interface
 (defmacro describe 
   "Describes a specification in the form of verifiable (executable) examples."
   {:arglists '([symbol? description? (options*) examples*])} 
@@ -23,7 +64,7 @@
 
 (defmacro it [description & body]
   `(dosync (commute *examples* conj
-		    (struct example ::Example (str *description* " " ~description)
+		    (struct example (str *description* " " ~description)
 			    #(binding [*failed-expectations* []]
 			       ~@body
 			       *failed-expectations*)))))

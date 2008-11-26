@@ -1,6 +1,0 @@
-(ns specjure)
-(require 'specjure.utilities)
-(require 'specjure.expectations)
-(require 'specjure.examples)
-(require 'specjure.options)
-(require 'specjure.public)
