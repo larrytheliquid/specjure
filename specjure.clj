@@ -31,7 +31,7 @@
 (defn check [example]
   (let [failed-expectations ((:fn example))
 	example-passed? (empty? failed-expectations)]
-    (printf "%s%s%n" (:description example) (if example-passed? "" " (FAILED)"))
+    (print (if example-passed? "." "F"))
     (if example-passed? example 
 	(assoc example :failed-expectations failed-expectations))))
 
@@ -87,15 +87,10 @@
      (let [examples (map check body)
 	   examples-count (count examples)
 	   failures-count (count (filter :failed-expectations examples))]
-       (printf "%n%s Examples, %s Failures%n" examples-count failures-count)
+       (printf "%n%n%s Examples, %s Failures%n" examples-count failures-count)
        (doseq failed-example (filter :failed-expectations examples)
 	 (doseq failed-expectation (:failed-expectations failed-example)
 	   (printf "%n'%s' FAILED%nexpected: %s%ngot: %s (using =)%n" 
 		   (:description failed-example)
 		   (:expected failed-expectation)
 		   (:actual failed-expectation)))))))
-
-(defn spec [path]
-  "Run examples in the specified file, or files ending in -spec
-  in a directory and its recursive subdirectories."
-  (load-file path) (check-examples))

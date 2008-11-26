@@ -16,6 +16,7 @@
 ;;; TODO: Add file and line number to failing spec information
 ;;; TODO: A sync-before, wrapping the before in dosync so you can use its body
 
+(load-file "specjure.clj")
 (load-file "spec/describe/default_spec.clj")
 ;; (load-file "spec/describe/before_spec.clj")
 ;; (load-file "spec/describe/integration_spec.clj")
