@@ -1,9 +1,6 @@
 (ns specjure)
 
 ;;; Utilities
-(defmacro push! [coll x]
-  (list 'set! coll (list 'conj coll x)))
-
 (defn fn-ns-str [fn-sym]
   (let [ns-prefix (str (ns-name *ns*) "/")
 	fn-str (str fn-sym)]
@@ -15,30 +12,27 @@
 (def *examples* (ref []))
 (def *description*)
 (def *wrappers*)
-(def *failed-expectations*)
 (defstruct example :description :fn)
 (defstruct expectation :comparator :actual :expected)
 
 ;;; Verification
-(defn passed? [expectation]
-  ((:comparator expectation) (:expected expectation) (:actual expectation)))
-
 (defn parse-matcher [matcher & arguments]
   (cond (= matcher '=) arguments
 	(= matcher 'be-true) [true (not (not (first arguments)))]
 	(= matcher 'be-false) [false (not (not (first arguments)))]))
 
-(defn format-failure [example expectation]
-  (format "%n'%s' FAILED%nexpected: %s%ngot: %s (using =)%n" 
-	  (:description example)
-	  (:expected expectation)
-	  (:actual expectation)))
+(defn format-failure [expectation]
+  (format "expected: %s%ngot: %s (using =)%n" 
+	  (:actual expectation) (:expected expectation)))
 
 (defn check [example]
-  (let [failed-expectations ((:fn example))
-	example-passed? (empty? failed-expectations)]
-    (print (if example-passed? "." "F"))
-    (if example-passed? true (format-failure example (first failed-expectations)))))
+  (try ((:fn example))
+       (print ".") true
+       (catch java.lang.AssertionError e
+	 (print "F")
+	 (format "%n'%s' FAILED%n%s" 
+		 (:description example)
+		 (.getMessage e)))))
 
 ;;; Options
 (defmulti option :option-name)
@@ -69,15 +63,14 @@
 
 (defmacro it [description & body]
   `(dosync (commute *examples* conj
-	   (struct example (str *description* " " ~description)
-		   #(binding [*failed-expectations* []]
-		      ~@body
-		      *failed-expectations*)))))
+	   (struct example 
+		   (str *description* " " ~description)
+		   (fn [] ~@body)))))
 
 (defn- _should [comparator matcher arguments]
   `(let [expectation# (apply struct expectation ~comparator (parse-matcher '~matcher ~@arguments))]
-     (when-not (passed? expectation#)
-       (push! *failed-expectations* expectation#))))
+     (when-not ((:comparator expectation#) (:actual expectation#) (:expected expectation#))
+       (throw (new java.lang.AssertionError (format-failure expectation#))))))
 
 (defmacro should [matcher & arguments]
   (_should '= matcher arguments))
