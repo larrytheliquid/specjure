@@ -12,7 +12,8 @@
 (def *example-groups* (ref []))
 (def *description*)
 (def *examples*)
-(defstruct example :description :fn)
+(defstruct example-group :type :description :examples)
+(defstruct example :type :description :fn)
 (defstruct expectation :comparator :actual :expected)
 
 ;;; Verification
@@ -25,7 +26,10 @@
   (format "expected: %s%ngot: %s (using =)%n" 
 	  (:actual expectation) (:expected expectation)))
 
-(defn check [example]
+(defmulti check :type)
+(defmethod check ::ExampleGroup [example-group]
+  (map (fn [example] (check example)) (:examples example-group)))
+(defmethod check ::Example [example]
   (try ((:fn example))
        (print ".") true
        (catch java.lang.AssertionError e
@@ -33,15 +37,6 @@
 	 (format "%n'%s' FAILED%n%s" 
 		 (:description example)
 		 (.getMessage e)))))
-
-;;; Options
-(defmulti option :option-name)
-(defmethod option :before [{val :option-value code :code}]
-  (let [bindings (if (list? val) (first val) val)
-	body (when (list? val) (rest val))]
-    `(let [~@bindings]
-       ~@body
-       ~code)))
 
 ;;; Interface
 (defmacro describe 
@@ -60,11 +55,12 @@
     `(binding [*description* ~description
 	       *examples* []] 
        ~@body
-       (dosync (commute *example-groups* conj *examples*)))))
+       (dosync (commute *example-groups* conj (struct example-group ::ExampleGroup 
+						      *description* *examples*))))))
 
 (defmacro it [description & body]
   `(set! *examples*  (conj *examples* 
-			   (struct example 
+			   (struct example ::Example 
 				   (str *description* " " ~description)
 				   (fn [] ~@body)))))
 
@@ -82,7 +78,7 @@
 (defn check-examples 
   ([] (check-examples @*example-groups*))
   ([body]                    
-     (let [examples (mapcat #(map check %) body)
+     (let [examples (mapcat check body)
 	   failures (filter string? examples)]    
        (dosync (ref-set *example-groups* []))
        (printf "%n%n%s Examples, %s Failures%n" (count examples) (count failures))
