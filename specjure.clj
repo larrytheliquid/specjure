@@ -9,9 +9,9 @@
       (str ns-prefix fn-str))))
 
 ;;; Data
-(def *examples* (ref []))
+(def *example-groups* (ref []))
 (def *description*)
-(def *wrappers*)
+(def *examples*)
 (defstruct example :description :fn)
 (defstruct expectation :comparator :actual :expected)
 
@@ -58,14 +58,15 @@
 	options (if (not function-str) arg2 options)
 	body (if (not function-str) args body)]
     `(binding [*description* ~description
-	       *wrappers* (second ~options)] 
-       ~@body)))
+	       *examples* []] 
+       ~@body
+       (dosync (commute *example-groups* conj *examples*)))))
 
 (defmacro it [description & body]
-  `(dosync (commute *examples* conj
-	   (struct example 
-		   (str *description* " " ~description)
-		   (fn [] ~@body)))))
+  `(set! *examples*  (conj *examples* 
+			   (struct example 
+				   (str *description* " " ~description)
+				   (fn [] ~@body)))))
 
 (defn- _should [comparator matcher arguments]
   `(let [expectation# (apply struct expectation ~comparator (parse-matcher '~matcher ~@arguments))]
@@ -79,9 +80,10 @@
   (_should '(complement =) matcher arguments))
 
 (defn check-examples 
-  ([] (check-examples @*examples*))
+  ([] (check-examples @*example-groups*))
   ([body]                    
-     (let [failures (filter string? (map check body))]    
-       (dosync (ref-set *examples* []))
-       (printf "%n%n%s Examples, %s Failures%n" (count body) (count failures))
+     (let [examples (mapcat #(map check %) body)
+	   failures (filter string? examples)]    
+       (dosync (ref-set *example-groups* []))
+       (printf "%n%n%s Examples, %s Failures%n" (count examples) (count failures))
        (doseq failure failures (print failure)))))
