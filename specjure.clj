@@ -14,6 +14,7 @@
 ;;; Data
 (def *example-groups* (ref []))
 (def *description*)
+(def *parameters*)
 (def *before-eachs*)
 (def *examples*)
 (defstruct example-group :type :description :before-eachs :examples)
@@ -33,10 +34,9 @@
 (defmulti check :type)
 
 (defmethod check ::ExampleGroup [group]
-  (map (fn [example] 
-	 (doseq before-each (:before-eachs group) (before-each))
-	 (check example)) 
-       (:examples group)))
+  (binding [*parameters* {}]
+    (doseq before-each (:before-eachs group) (before-each))
+    (doall (map #(check %) (:examples group)))))
 
 (defmethod check ::Example [example]
   (try ((:fn example))
@@ -64,6 +64,12 @@
        (dosync (commute *example-groups* conj (struct example-group ::ExampleGroup 
 						      *description* *before-eachs*
 						      *examples*))))))
+
+(defmacro params [param]
+  `(~param *parameters*))
+
+(defmacro set-params [name value]
+  `(set! *parameters* (assoc *parameters* ~name ~value)))
 
 (defmacro before-each [& body]
   `(push! *before-eachs* (fn [] ~@body)))

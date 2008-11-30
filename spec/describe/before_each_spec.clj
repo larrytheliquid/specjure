@@ -1,11 +1,10 @@
 (ns specjure)
 
 (describe describe "with before-each and without examples" 
-  (before-each (let [var1 1 var2 2])))
+  (before-each))
 
 (describe describe "with before-each and examples"
-  (before-each (let [var1 1 var2 2]))
+  (before-each (set-params :var1 1))
 
-  (it "binds all variables in examples"
-    (should = 1 1)
-    (should = 2 2)))
+  (it "runs before-each function before each example"
+    (should = (params :var1) 1)))
