@@ -43,15 +43,11 @@
   "Describes a specification in the form of verifiable (executable) examples."
   {:arglists '([symbol? description? (options*) examples*])} 
   [arg1 arg2 & args]  
-  (let [;; describing a function
-	function-str (when (symbol? arg1) (fn-ns-str arg1))	
+  (let [function-str (when (symbol? arg1) (fn-ns-str arg1))	
 	description (if (string? arg2) (str function-str " " arg2) function-str)
-	options (if (string? arg2) (first args) arg2)
-	body (if (string? arg2) (rest args) args)
-	;; describing anything else
+	body (if (string? arg2) args (cons arg2 args))
 	description (if (not function-str) arg1 description)
-	options (if (not function-str) arg2 options)
-	body (if (not function-str) args body)]
+	body (if (not function-str) (cons arg2 args) body)]
     `(binding [*description* ~description
 	       *examples* []] 
        ~@body
