@@ -12,19 +12,13 @@
   (list 'set! coll (list 'conj coll x)))
 
 ;;; Data
-(def *example-groups* (ref []))
-(def *parameters*)
+(def *example-groups* (ref [])) 
+(def *group-desc*) (def *parameters*)
+(def *before-all-fns*) (def *before-each-fns*)
+(def *example-descs*) (def *example-fns*)
+(def *after-each-fns*) (def *after-all-fns*)
 (defstruct example-group :desc :before-all-fns :before-each-fns 
 	   :example-descs :example-fns :after-each-fns :after-all-fns)
-(defstruct expectation :comparator :actual :expected)
-
-(def *group-desc*)
-(def *before-all-fns*)
-(def *before-each-fns*)
-(def *example-descs*)
-(def *example-fns*)
-(def *after-each-fns*)
-(def *after-all-fns*)
 
 ;;; Verification
 (defn parse-matcher [matcher & arguments]
@@ -32,16 +26,15 @@
 	(= matcher 'be-true) [true (not (not (first arguments)))]
 	(= matcher 'be-false) [false (not (not (first arguments)))]))
 
-(defn format-failure [expectation]
-  (format "expected: %s%ngot: %s (using =)%n" 
-	  (:actual expectation) (:expected expectation)))
+(defn format-failure [expected actual]
+  (format "expected: %s%ngot: %s (using =)%n" expected actual))
 
-(defn- check-example [example-desc example-fn]
+(defn- check-example [group-desc example-desc example-fn]
   (try (example-fn)
        (print ".") true
        (catch java.lang.AssertionError e
 	 (print "F")
-	 (format "%n'%s' FAILED%n%s" example-desc (.getMessage e)))))
+	 (format "%n'%s%s' FAILED%n%s" group-desc example-desc (.getMessage e)))))
 
 (defn check [group]
   (binding [*parameters* {}]        
@@ -50,7 +43,7 @@
 	  (doall (map (fn [example-desc example-fn] 
 			(doseq fn (:before-each-fns group) (fn))
 			(let [checked-example
-			      (check-example example-desc example-fn)]
+			      (check-example (:desc group) example-desc example-fn)]
 			  (doseq fn (:after-each-fns group) (fn))		    
 			  checked-example))
 		      (:example-descs group)
@@ -83,7 +76,7 @@
   `(push! *before-each-fns* (fn [] ~@body)))
 
 (defmacro it [desc & body]
-  `(do (push! *example-descs* (str *group-desc* " " ~desc))
+  `(do (push! *example-descs* ~desc)
        (push! *example-fns* (fn [] ~@body))))
 
 (defmacro after-each [& body]
@@ -99,9 +92,9 @@
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
 (defn- _should [comparator matcher arguments]
-  `(let [expectation# (apply struct expectation ~comparator (parse-matcher '~matcher ~@arguments))]
-     (when-not ((:comparator expectation#) (:actual expectation#) (:expected expectation#))
-       (throw (new java.lang.AssertionError (format-failure expectation#))))))
+  `(let [[expected# actual#] (parse-matcher '~matcher ~@arguments)]
+     (when-not (~comparator expected# actual#)
+       (throw (new java.lang.AssertionError (format-failure expected# actual#))))))
 
 (defmacro should [matcher & arguments]
   (_should '= matcher arguments))
