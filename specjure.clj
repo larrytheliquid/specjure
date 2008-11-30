@@ -68,22 +68,13 @@
 	body (if (string? arg2) args (cons arg2 args))
 	group-desc (if (not function-str) arg1 group-desc)
 	body (if (not function-str) (cons arg2 args) body)]
-    `(binding [*group-desc* ~group-desc
-	       *before-all-fns* []
-	       *before-each-fns* []
-	       *example-descs* []
-	       *example-fns* []
-	       *after-each-fns* []
-	       *after-all-fns* []] 
+    `(binding [*group-desc* ~group-desc *before-all-fns* [] *before-each-fns* []
+	       *example-descs* [] *example-fns* [] *after-each-fns* [] *after-all-fns* []]
        ~@body
-       (dosync (commute *example-groups* conj (struct example-group
-						      *group-desc* 
-						      *before-all-fns*
-						      *before-each-fns*
-						      *example-descs*
-						      *example-fns*
-						      *after-each-fns*
-						      *after-all-fns*))))))
+       (let [group#
+	     (struct example-group *group-desc* *before-all-fns* *before-each-fns*
+		     *example-descs* *example-fns* *after-each-fns* *after-all-fns*)]
+	 (dosync (commute *example-groups* conj group#))))))
 
 (defmacro before-all [& body]
   `(push! *before-all-fns* (fn [] ~@body)))
