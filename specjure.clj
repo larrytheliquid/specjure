@@ -15,9 +15,10 @@
 (def *example-groups* (ref []))
 (def *description*)
 (def *parameters*)
+(def *before-alls*)
 (def *before-eachs*)
 (def *examples*)
-(defstruct example-group :type :description :before-eachs :examples)
+(defstruct example-group :type :description :before-alls :before-eachs :examples)
 (defstruct example :type :description :fn)
 (defstruct expectation :comparator :actual :expected)
 
@@ -35,8 +36,11 @@
 
 (defmethod check ::ExampleGroup [group]
   (binding [*parameters* {}]
-    (doseq before-each (:before-eachs group) (before-each))
-    (doall (map #(check %) (:examples group)))))
+    (doseq before-all (:before-alls group) (before-all))
+    (doall (map (fn [example] 
+		  (doseq before-each (:before-eachs group) (before-each))
+		  (check example)) 
+		(:examples group)))))
 
 (defmethod check ::Example [example]
   (try ((:fn example))
@@ -58,11 +62,14 @@
 	description (if (not function-str) arg1 description)
 	body (if (not function-str) (cons arg2 args) body)]
     `(binding [*description* ~description
+	       *before-alls* []
 	       *before-eachs* []
 	       *examples* []] 
        ~@body
        (dosync (commute *example-groups* conj (struct example-group ::ExampleGroup 
-						      *description* *before-eachs*
+						      *description* 
+						      *before-alls*
+						      *before-eachs*
 						      *examples*))))))
 
 (defmacro params [param]
@@ -70,6 +77,9 @@
 
 (defmacro set-params [name value]
   `(set! *parameters* (assoc *parameters* ~name ~value)))
+
+(defmacro before-all [& body]
+  `(push! *before-alls* (fn [] ~@body)))
 
 (defmacro before-each [& body]
   `(push! *before-eachs* (fn [] ~@body)))

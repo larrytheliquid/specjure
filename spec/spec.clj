@@ -18,6 +18,7 @@
 
 (load-file "specjure.clj")
 (load-file "spec/describe/describe_spec.clj")
+(load-file "spec/describe/before_all_spec.clj")
 (load-file "spec/describe/before_each_spec.clj")
 ;; (load-file "spec/describe/integration_spec.clj")
 (load-file "spec/should/equal_spec.clj")
