@@ -14,16 +14,18 @@
 ;;; Data
 (def *example-groups* (ref []))
 (def *parameters*)
+(defstruct example-group :type :desc :before-all-fns :before-each-fns 
+	   :example-descs :example-fns :after-each-fns :after-all-fns)
+(defstruct example :type :desc :fn)
+(defstruct expectation :comparator :actual :expected)
+
 (def *group-desc*)
 (def *before-all-fns*)
 (def *before-each-fns*)
+(def *example-descs*)
 (def *example-fns*)
 (def *after-each-fns*)
 (def *after-all-fns*)
-(defstruct example-group :type :desc :before-all-fns :before-each-fns 
-	   :example-fns :after-each-fns :after-all-fns)
-(defstruct example :type :desc :fn)
-(defstruct expectation :comparator :actual :expected)
 
 ;;; Verification
 (defn parse-matcher [matcher & arguments]
@@ -41,10 +43,11 @@
   (binding [*parameters* {}]    
     (doseq i (:before-all-fns group) (i))
     (let [result
-	  (doall (map (fn [example-fn] 
+	  (doall (map (fn [example-desc example-fn] 
 			(doseq i (:before-each-fns group) (i))
 			(check example-fn)
 			(doseq i (:after-each-fns group) (i))) 
+		      (:example-descs group)
 		      (:example-fns group)))]
       (doseq i (:after-all-fns group) (i))
       result)))
@@ -71,6 +74,7 @@
     `(binding [*group-desc* ~group-desc
 	       *before-all-fns* []
 	       *before-each-fns* []
+	       *example-descs* []
 	       *example-fns* []
 	       *after-each-fns* []
 	       *after-all-fns* []] 
@@ -79,6 +83,7 @@
 						      *group-desc* 
 						      *before-all-fns*
 						      *before-each-fns*
+						      *example-descs*
 						      *example-fns*
 						      *after-each-fns*
 						      *after-all-fns*))))))
@@ -90,9 +95,10 @@
   `(push! *before-each-fns* (fn [] ~@body)))
 
 (defmacro it [desc & body]
-  `(push! *example-fns* (struct example ::Example 
-				(str *group-desc* " " ~desc)
-				(fn [] ~@body))))
+  `(do (push! *example-descs* (str *group-desc* " " ~desc))
+     (push! *example-fns* (struct example ::Example 
+				  (str *group-desc* " " ~desc)
+				  (fn [] ~@body)))))
 
 (defmacro after-each [& body]
   `(push! *after-each-fns* (fn [] ~@body)))
