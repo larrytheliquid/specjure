@@ -18,7 +18,10 @@
 (def *before-alls*)
 (def *before-eachs*)
 (def *examples*)
-(defstruct example-group :type :description :before-alls :before-eachs :examples)
+(def *after-eachs*)
+(def *after-alls*)
+(defstruct example-group :type :description :before-alls :before-eachs 
+	   :examples :after-eachs :after-alls)
 (defstruct example :type :description :fn)
 (defstruct expectation :comparator :actual :expected)
 
@@ -35,12 +38,16 @@
 (defmulti check :type)
 
 (defmethod check ::ExampleGroup [group]
-  (binding [*parameters* {}]
+  (binding [*parameters* {}]    
     (doseq before-all (:before-alls group) (before-all))
-    (doall (map (fn [example] 
-		  (doseq before-each (:before-eachs group) (before-each))
-		  (check example)) 
-		(:examples group)))))
+    (let [result
+	  (doall (map (fn [example] 
+			(doseq before-each (:before-eachs group) (before-each))
+			(check example)
+			(doseq after-each (:after-eachs group) (after-each))) 
+		      (:examples group)))]
+      (doseq after-all (:after-alls group) (after-all))
+      result)))
 
 (defmethod check ::Example [example]
   (try ((:fn example))
@@ -64,19 +71,17 @@
     `(binding [*description* ~description
 	       *before-alls* []
 	       *before-eachs* []
-	       *examples* []] 
+	       *examples* []
+	       *after-eachs* []
+	       *after-alls* []] 
        ~@body
        (dosync (commute *example-groups* conj (struct example-group ::ExampleGroup 
 						      *description* 
 						      *before-alls*
 						      *before-eachs*
-						      *examples*))))))
-
-(defmacro params [param]
-  `(~param *parameters*))
-
-(defmacro set-params [name value]
-  `(set! *parameters* (assoc *parameters* ~name ~value)))
+						      *examples*
+						      *after-eachs*
+						      *after-alls*))))))
 
 (defmacro before-all [& body]
   `(push! *before-alls* (fn [] ~@body)))
@@ -88,6 +93,18 @@
   `(push! *examples* (struct example ::Example 
 			     (str *description* " " ~description)
 			     (fn [] ~@body))))
+
+(defmacro after-each [& body]
+  `(push! *after-eachs* (fn [] ~@body)))
+
+(defmacro after-all [& body]
+  `(push! *after-alls* (fn [] ~@body)))
+
+(defmacro params [param]
+  `(~param *parameters*))
+
+(defmacro set-params [name value]
+  `(set! *parameters* (assoc *parameters* ~name ~value)))
 
 (defn _should [comparator matcher arguments]
   `(let [expectation# (apply struct expectation ~comparator (parse-matcher '~matcher ~@arguments))]
