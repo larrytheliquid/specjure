@@ -37,29 +37,25 @@
   (format "expected: %s%ngot: %s (using =)%n" 
 	  (:actual expectation) (:expected expectation)))
 
-(defmulti check :type)
-
-(defmethod check ::ExampleGroup [group]
-  (binding [*parameters* {}]    
-    (doseq i (:before-all-fns group) (i))
-    (let [result
-	  (doall (map (fn [example-desc example-fn] 
-			(doseq i (:before-each-fns group) (i))
-			(check example-fn)
-			(doseq i (:after-each-fns group) (i))) 
-		      (:example-descs group)
-		      (:example-fns group)))]
-      (doseq i (:after-all-fns group) (i))
-      result)))
-
-(defmethod check ::Example [example]
-  (try ((:fn example))
+(defn- check-example [example-desc example-fn]
+  (try ((:fn example-fn))
        (print ".") true
        (catch java.lang.AssertionError e
 	 (print "F")
-	 (format "%n'%s' FAILED%n%s" 
-		 (:desc example)
-		 (.getMessage e)))))
+	 (format "%n'%s' FAILED%n%s" example-desc (.getMessage e)))))
+
+(defmulti check :type)
+(defmethod check ::ExampleGroup [group]
+  (binding [*parameters* {}]    
+    (doall (map #(apply %) (:before-all-fns group)))
+    (doall (map (fn [example-desc example-fn] 
+		  (doall (map #(apply %) (:before-each-fns group)))		  
+		  (let [result (check-example example-desc example-fn)]
+		    (doall (map #(apply %) (:after-each-fns group)))
+		    (doall (map #(apply %) (:after-all-fns group)))		    
+		    result)) 
+		(:example-descs group)
+		(:example-fns group)))))
 
 ;;; Interface
 (defmacro describe 
