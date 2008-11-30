@@ -13,16 +13,16 @@
 
 ;;; Data
 (def *example-groups* (ref []))
-(def *description*)
 (def *parameters*)
-(def *before-alls*)
-(def *before-eachs*)
-(def *examples*)
-(def *after-eachs*)
-(def *after-alls*)
-(defstruct example-group :type :description :before-alls :before-eachs 
-	   :examples :after-eachs :after-alls)
-(defstruct example :type :description :fn)
+(def *group-desc*)
+(def *before-all-fns*)
+(def *before-each-fns*)
+(def *example-fns*)
+(def *after-each-fns*)
+(def *after-all-fns*)
+(defstruct example-group :type :desc :before-all-fns :before-each-fns 
+	   :example-fns :after-each-fns :after-all-fns)
+(defstruct example :type :desc :fn)
 (defstruct expectation :comparator :actual :expected)
 
 ;;; Verification
@@ -39,14 +39,14 @@
 
 (defmethod check ::ExampleGroup [group]
   (binding [*parameters* {}]    
-    (doseq before-all (:before-alls group) (before-all))
+    (doseq i (:before-all-fns group) (i))
     (let [result
-	  (doall (map (fn [example] 
-			(doseq before-each (:before-eachs group) (before-each))
-			(check example)
-			(doseq after-each (:after-eachs group) (after-each))) 
-		      (:examples group)))]
-      (doseq after-all (:after-alls group) (after-all))
+	  (doall (map (fn [example-fn] 
+			(doseq i (:before-each-fns group) (i))
+			(check example-fn)
+			(doseq i (:after-each-fns group) (i))) 
+		      (:example-fns group)))]
+      (doseq i (:after-all-fns group) (i))
       result)))
 
 (defmethod check ::Example [example]
@@ -55,7 +55,7 @@
        (catch java.lang.AssertionError e
 	 (print "F")
 	 (format "%n'%s' FAILED%n%s" 
-		 (:description example)
+		 (:desc example)
 		 (.getMessage e)))))
 
 ;;; Interface
@@ -64,41 +64,41 @@
   {:arglists '([symbol? description? (options*) examples*])} 
   [arg1 arg2 & args]  
   (let [function-str (when (symbol? arg1) (fn-ns-str arg1))	
-	description (if (string? arg2) (str function-str " " arg2) function-str)
+	group-desc (if (string? arg2) (str function-str " " arg2) function-str)
 	body (if (string? arg2) args (cons arg2 args))
-	description (if (not function-str) arg1 description)
+	group-desc (if (not function-str) arg1 group-desc)
 	body (if (not function-str) (cons arg2 args) body)]
-    `(binding [*description* ~description
-	       *before-alls* []
-	       *before-eachs* []
-	       *examples* []
-	       *after-eachs* []
-	       *after-alls* []] 
+    `(binding [*group-desc* ~group-desc
+	       *before-all-fns* []
+	       *before-each-fns* []
+	       *example-fns* []
+	       *after-each-fns* []
+	       *after-all-fns* []] 
        ~@body
        (dosync (commute *example-groups* conj (struct example-group ::ExampleGroup 
-						      *description* 
-						      *before-alls*
-						      *before-eachs*
-						      *examples*
-						      *after-eachs*
-						      *after-alls*))))))
+						      *group-desc* 
+						      *before-all-fns*
+						      *before-each-fns*
+						      *example-fns*
+						      *after-each-fns*
+						      *after-all-fns*))))))
 
 (defmacro before-all [& body]
-  `(push! *before-alls* (fn [] ~@body)))
+  `(push! *before-all-fns* (fn [] ~@body)))
 
 (defmacro before-each [& body]
-  `(push! *before-eachs* (fn [] ~@body)))
+  `(push! *before-each-fns* (fn [] ~@body)))
 
-(defmacro it [description & body]
-  `(push! *examples* (struct example ::Example 
-			     (str *description* " " ~description)
-			     (fn [] ~@body))))
+(defmacro it [desc & body]
+  `(push! *example-fns* (struct example ::Example 
+				(str *group-desc* " " ~desc)
+				(fn [] ~@body))))
 
 (defmacro after-each [& body]
-  `(push! *after-eachs* (fn [] ~@body)))
+  `(push! *after-each-fns* (fn [] ~@body)))
 
 (defmacro after-all [& body]
-  `(push! *after-alls* (fn [] ~@body)))
+  `(push! *after-all-fns* (fn [] ~@body)))
 
 (defmacro params [param]
   `(~param *parameters*))
@@ -106,7 +106,7 @@
 (defmacro set-params [name value]
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
-(defn _should [comparator matcher arguments]
+(defn- _should [comparator matcher arguments]
   `(let [expectation# (apply struct expectation ~comparator (parse-matcher '~matcher ~@arguments))]
      (when-not ((:comparator expectation#) (:actual expectation#) (:expected expectation#))
        (throw (new java.lang.AssertionError (format-failure expectation#))))))
