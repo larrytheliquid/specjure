@@ -14,9 +14,8 @@
 ;;; Data
 (def *example-groups* (ref []))
 (def *parameters*)
-(defstruct example-group :type :desc :before-all-fns :before-each-fns 
+(defstruct example-group :desc :before-all-fns :before-each-fns 
 	   :example-descs :example-fns :after-each-fns :after-all-fns)
-(defstruct example :type :desc :fn)
 (defstruct expectation :comparator :actual :expected)
 
 (def *group-desc*)
@@ -38,24 +37,26 @@
 	  (:actual expectation) (:expected expectation)))
 
 (defn- check-example [example-desc example-fn]
-  (try ((:fn example-fn))
+  (try (example-fn)
        (print ".") true
        (catch java.lang.AssertionError e
 	 (print "F")
 	 (format "%n'%s' FAILED%n%s" example-desc (.getMessage e)))))
 
-(defmulti check :type)
-(defmethod check ::ExampleGroup [group]
-  (binding [*parameters* {}]    
-    (doall (map #(apply %) (:before-all-fns group)))
-    (doall (map (fn [example-desc example-fn] 
-		  (doall (map #(apply %) (:before-each-fns group)))		  
-		  (let [result (check-example example-desc example-fn)]
-		    (doall (map #(apply %) (:after-each-fns group)))
-		    (doall (map #(apply %) (:after-all-fns group)))		    
-		    result)) 
-		(:example-descs group)
-		(:example-fns group)))))
+(defn check [group]
+  (binding [*parameters* {}]        
+    (doseq fn (:before-all-fns group) (fn))
+    (let [result
+	  (doall (map (fn [example-desc example-fn] 
+			(doseq fn (:before-each-fns group) (fn))
+			(let [checked-example
+			      (check-example example-desc example-fn)]
+			  (doseq fn (:after-each-fns group) (fn))		    
+			  checked-example))
+		      (:example-descs group)
+		      (:example-fns group)))]
+      (doseq fn (:after-all-fns group) (fn))
+      result)))
 
 ;;; Interface
 (defmacro describe 
@@ -75,7 +76,7 @@
 	       *after-each-fns* []
 	       *after-all-fns* []] 
        ~@body
-       (dosync (commute *example-groups* conj (struct example-group ::ExampleGroup 
+       (dosync (commute *example-groups* conj (struct example-group
 						      *group-desc* 
 						      *before-all-fns*
 						      *before-each-fns*
@@ -92,9 +93,7 @@
 
 (defmacro it [desc & body]
   `(do (push! *example-descs* (str *group-desc* " " ~desc))
-     (push! *example-fns* (struct example ::Example 
-				  (str *group-desc* " " ~desc)
-				  (fn [] ~@body)))))
+       (push! *example-fns* (fn [] ~@body))))
 
 (defmacro after-each [& body]
   `(push! *after-each-fns* (fn [] ~@body)))
