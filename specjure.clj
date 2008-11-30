@@ -110,3 +110,12 @@
        (dosync (ref-set *example-groups* []))
        (printf "%n%n%s Examples, %s Failures%n" (count examples) (count failures))
        (doseq failure failures (print failure)))))
+
+(defn specdoc
+  ([] (specdoc @*example-groups*))
+  ([body]
+     (dosync (ref-set *example-groups* []))
+     (doseq example-group body
+       (printf "%n%s%n" (:desc example-group))
+       (doseq example (:example-descs example-group)
+	 (printf "- %s%n" example)))))
