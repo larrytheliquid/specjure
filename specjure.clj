@@ -8,11 +8,15 @@
       fn-str
       (str ns-prefix fn-str))))
 
+(defmacro push! [coll x]
+  (list 'set! coll (list 'conj coll x)))
+
 ;;; Data
 (def *example-groups* (ref []))
 (def *description*)
+(def *before-eachs*)
 (def *examples*)
-(defstruct example-group :type :description :examples)
+(defstruct example-group :type :description :before-eachs :examples)
 (defstruct example :type :description :fn)
 (defstruct expectation :comparator :actual :expected)
 
@@ -27,8 +31,13 @@
 	  (:actual expectation) (:expected expectation)))
 
 (defmulti check :type)
-(defmethod check ::ExampleGroup [example-group]
-  (map (fn [example] (check example)) (:examples example-group)))
+
+(defmethod check ::ExampleGroup [group]
+  (map (fn [example] 
+	 (doseq before-each (:before-eachs group) (before-each))
+	 (check example)) 
+       (:examples group)))
+
 (defmethod check ::Example [example]
   (try ((:fn example))
        (print ".") true
@@ -49,18 +58,22 @@
 	description (if (not function-str) arg1 description)
 	body (if (not function-str) (cons arg2 args) body)]
     `(binding [*description* ~description
+	       *before-eachs* []
 	       *examples* []] 
        ~@body
        (dosync (commute *example-groups* conj (struct example-group ::ExampleGroup 
-						      *description* *examples*))))))
+						      *description* *before-eachs*
+						      *examples*))))))
+
+(defmacro before-each [& body]
+  `(push! *before-eachs* (fn [] ~@body)))
 
 (defmacro it [description & body]
-  `(set! *examples*  (conj *examples* 
-			   (struct example ::Example 
-				   (str *description* " " ~description)
-				   (fn [] ~@body)))))
+  `(push! *examples* (struct example ::Example 
+			     (str *description* " " ~description)
+			     (fn [] ~@body))))
 
-(defn- _should [comparator matcher arguments]
+(defn _should [comparator matcher arguments]
   `(let [expectation# (apply struct expectation ~comparator (parse-matcher '~matcher ~@arguments))]
      (when-not ((:comparator expectation#) (:actual expectation#) (:expected expectation#))
        (throw (new java.lang.AssertionError (format-failure expectation#))))))
