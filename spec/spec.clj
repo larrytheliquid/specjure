@@ -27,4 +27,4 @@
 (load-file "spec/should/be_true_spec.clj")
 (load-file "spec/should/be_false_spec.clj")
 
-(specjure/check-examples)
+(specjure/check)

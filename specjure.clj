@@ -36,7 +36,7 @@
 	 (print "F")
 	 (format "%n'%s%s' FAILED%n%s" group-desc example-desc (.getMessage e)))))
 
-(defn check [group]
+(defn- check-group [group]
   (binding [*parameters* {}]        
     (doseq fn (:before-all-fns group) (fn))
     (let [result
@@ -102,10 +102,10 @@
 (defmacro should-not [matcher & arguments]
   (_should '(complement =) matcher arguments))
 
-(defn check-examples 
-  ([] (check-examples @*example-groups*))
+(defn check
+  ([] (check @*example-groups*))
   ([body]                    
-     (let [examples (mapcat check body)
+     (let [examples (mapcat check-group body)
 	   failures (filter string? examples)]    
        (dosync (ref-set *example-groups* []))
        (printf "%n%n%s Examples, %s Failures%n" (count examples) (count failures))
