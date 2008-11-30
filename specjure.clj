@@ -13,10 +13,10 @@
 
 ;;; Data
 (def *example-groups* (ref [])) 
-(def *group-desc*) (def *parameters*)
-(def *before-all-fns*) (def *before-each-fns*)
-(def *example-descs*) (def *example-fns*)
-(def *after-each-fns*) (def *after-all-fns*)
+(def *group-desc* "") (def *parameters*)
+(def *before-all-fns* []) (def *before-each-fns* [])
+(def *example-descs* []) (def *example-fns* [])
+(def *after-each-fns* []) (def *after-all-fns* [])
 (defstruct example-group :desc :before-all-fns :before-each-fns 
 	   :example-descs :example-fns :after-each-fns :after-all-fns)
 
@@ -61,8 +61,10 @@
 	body (if (string? arg2) args (cons arg2 args))
 	group-desc (if (not function-str) arg1 group-desc)
 	body (if (not function-str) (cons arg2 args) body)]
-    `(binding [*group-desc* ~group-desc *before-all-fns* [] *before-each-fns* []
-	       *example-descs* [] *example-fns* [] *after-each-fns* [] *after-all-fns* []]
+    `(binding [*group-desc* (str *group-desc* ~group-desc " ") 
+	       *before-all-fns* *before-all-fns* *before-each-fns* *before-each-fns*
+	       *example-descs* [] *example-fns* []
+	       *after-each-fns* *after-each-fns* *after-all-fns* *after-all-fns*]
        ~@body
        (let [group#
 	     (struct example-group *group-desc* *before-all-fns* *before-each-fns*
