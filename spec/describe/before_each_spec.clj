@@ -7,4 +7,4 @@
   (before-each (set-params :var1 1))
 
   (it "runs before-each function before each example"
-    (should = (params :var1) 1)))
+    (should = 1 (params :var1))))
