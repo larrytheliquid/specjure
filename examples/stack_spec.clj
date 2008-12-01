@@ -1,14 +1,16 @@
 ;; RSpec stack example: http://rspec.info/examples.html
-(ns example (:use specjure))
+(ns example (:refer-clojure :exclude [empty? peek]) (:use specjure))
 
 (defn stack [])
-(defn full? [stk])
+(defn peek [stk])
 (defn push! [stk val])
 (defn pop! [stk])
+(defn empty? [stk])
+(defn full? [stk])
 
 (shared-examples-for "non-empty example/stack" []
   (it "is not empty"
-    (should not = true (empty? (param :stack))))
+    (should not be empty (param :stack)))
 
   (it "returns the top item when applied to example/peek"
     (should = (param :last-item-added) (peek (param :stack))))
@@ -27,7 +29,7 @@
 
 (shared-examples-for "non-full example/stack" []
   (it "is not full"
-    (should not = true (full? (param :stack))))
+    (should not be example/full (param :stack)))
 
   (it "adds to the top when applied to example/push!"
     (push! (param :stack) "newly added top item")
@@ -39,13 +41,15 @@
 
   (describe "(empty)"
     (it "is empty"
-      (should = true (empty? (param :stack))))
+      (should be example/empty (param :stack)))
 
     (it-should-behave-like "non-full example/stack")
 
-    (it "complains when applied to example/peek")
+    (it "complains when applied to example/peek"
+      (should throw Exception (peek (param :stack))))
 
-    (it "complains when applied to example/pop!"))
+    (it "complains when applied to example/pop!"
+      (should throw Exception (pop! (param :stack)))))
 
   (describe "(with one item)"
     (before-each
@@ -61,8 +65,9 @@
       (set-param :last-item-added 10)))
 
   (it "is full"
-    (should = true (full? (param :stack))))
+    (should be example/full (param :stack)))
 
   (it-should-behave-like "non-empty example/stack")
 
-  (it "complains when applied to example/push!"))
+  (it "complains when applied to example/push!"
+    (should throw Exception (push! (param :stack) (fn [])))))
