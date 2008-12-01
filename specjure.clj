@@ -10,6 +10,7 @@
 
 ;;; Data
 (def *example-groups* (ref []))
+(def *shared-examples* (ref {}))
 (def *parameters*)
 (defstruct example-group :desc :before-all-fns :before-each-fns 
 	   :example-descs :example-fns :after-each-fns :after-all-fns)
@@ -89,6 +90,13 @@
 (defmacro after-all [& body]
   `(_push-group! :after-all-fns (fn [] ~@body)))
 
+(defmacro shared-examples-for [desc & body]
+  `(dosync (commute *shared-examples* assoc ~desc (fn [] ~@body))))
+
+(defmacro it-should-behave-like [desc]
+  `(let [fn# (get @*shared-examples* ~desc)]
+     (when fn# (fn#))))
+
 (defmacro param [param]
   `(~param *parameters*))
 
@@ -128,6 +136,7 @@
 
 (defn spec [path & options]
   (dosync (ref-set *example-groups* []))
+  (dosync (ref-set *shared-examples* {}))
   (let [options (if (empty? options) {} (apply assoc {} options))]
     (let [file (java.io.File. path)]
       (if (.isDirectory file)
