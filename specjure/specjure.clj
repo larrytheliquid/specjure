@@ -17,10 +17,19 @@
 (def *example-group* (struct example-group "" [] [] [] [] [] []))
 
 ;;; Verification
-(defn parse-matcher [matcher & arguments]
-  (cond (= matcher '=) arguments
-	(= matcher 'be-true) [true (not (not (first arguments)))]
-	(= matcher 'be-false) [false (not (not (first arguments)))]))
+(defmacro parse-matcher [matcher & args]
+  (cond (= matcher '=) `(vector ~@args)
+	(= matcher 'be-true) `(vector true (not (not ~@args)))
+	(= matcher 'be-false) `(vector false (not (not ~@args)))
+	(= matcher 'raise-error) `(vector true
+	   (try ~@args false
+		(catch ~(first args) e#
+		  true)
+		(catch Error e#
+		  false)
+		(catch Exception e#
+		  false)))
+	true (throw Exception "Unsupported matcher")))
 
 (defn format-failure [expected actual]
   (format "expected: %s%ngot: %s (using =)" expected actual))
@@ -104,7 +113,7 @@
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
 (defn- _should [comparator matcher arguments]
-  `(let [[expected# actual#] (parse-matcher '~matcher ~@arguments)]
+  `(let [[expected# actual#] (parse-matcher ~matcher ~@arguments)]
      (when-not (~comparator expected# actual#)
        (throw (new java.lang.AssertionError (format-failure expected# actual#))))))
 
