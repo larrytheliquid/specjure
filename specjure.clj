@@ -25,8 +25,12 @@
   (format "expected: %s%ngot: %s (using =)" expected actual))
 
 (defn- check-example [group-desc example-desc example-fn]
-  (try (example-fn)
-       (print ".") true
+  (try (when example-fn 
+	 (example-fn)
+	 (print ".") true)
+       (when-not example-fn
+	 (print "P")
+	 (format "%n'%s%s' PENDING%n" group-desc example-desc))
        (catch java.lang.Exception e
 	 (print "E")
 	 (format "%n'%s%s' ERROR%n%s: %s%n" group-desc example-desc 
@@ -77,7 +81,7 @@
 
 (defmacro it [desc & body]
   `(do (_push-group! :example-descs ~desc)
-       (_push-group! :example-fns (fn [] ~@body))))
+       (_push-group! :example-fns (when-not (empty? '~body) (fn [] ~@body)))))
 
 (defmacro after-each [& body]
   `(_push-group! :after-each-fns (fn [] ~@body)))
