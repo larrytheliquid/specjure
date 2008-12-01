@@ -16,11 +16,13 @@
 	   :example-descs :example-fns :after-each-fns :after-all-fns)
 (def *example-group* (struct example-group "" [] [] [] [] [] []))
 
+(defmacro be-predicate [pred & args]
+  `((resolve (symbol (str '~pred \?))) ~@args))
+
 ;;; Verification
 (defmacro parse-matcher [matcher & args]
   (cond (= matcher '=) `(vector ~@args)
-	(= matcher 'be-true) `(vector true (not (not ~@args)))
-	(= matcher 'be-false) `(vector false (not (not ~@args)))
+	(= matcher 'be) `(vector true (be-predicate ~@args))
 	(= matcher 'raise-error) `(vector true
 	   (try ~@args false
 		(catch ~(first args) e#
