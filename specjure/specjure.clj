@@ -23,7 +23,7 @@
 (defmacro parse-matcher [matcher & args]
   (cond (= matcher '=) `(vector ~@args)
 	(= matcher 'be) `(vector true (be-predicate ~@args))
-	(= matcher 'raise-error) `(vector true
+	(= matcher 'throw) `(vector true
 	   (try ~@args false
 		(catch ~(first args) e#
 		  true)
