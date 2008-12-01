@@ -8,17 +8,12 @@
       fn-str
       (str ns-prefix fn-str))))
 
-(defmacro push! [coll x]
-  (list 'set! coll (list 'conj coll x)))
-
 ;;; Data
-(def *example-groups* (ref [])) 
-(def *group-desc* "") (def *parameters*)
-(def *before-all-fns* []) (def *before-each-fns* [])
-(def *example-descs* []) (def *example-fns* [])
-(def *after-each-fns* []) (def *after-all-fns* [])
+(def *example-groups* (ref []))
+(def *parameters*)
 (defstruct example-group :desc :before-all-fns :before-each-fns 
 	   :example-descs :example-fns :after-each-fns :after-all-fns)
+(def *example-group* (struct example-group "" [] [] [] [] [] []))
 
 ;;; Verification
 (defn parse-matcher [matcher & arguments]
@@ -61,31 +56,30 @@
 	body (if (string? arg2) args (cons arg2 args))
 	group-desc (if (not function-str) arg1 group-desc)
 	body (if (not function-str) (cons arg2 args) body)]
-    `(binding [*group-desc* (str *group-desc* ~group-desc " ") 
-	       *before-all-fns* *before-all-fns* *before-each-fns* *before-each-fns*
-	       *example-descs* [] *example-fns* []
-	       *after-each-fns* *after-each-fns* *after-all-fns* *after-all-fns*]
+    `(binding [*example-group* (assoc *example-group* 
+				 :desc (str (:desc *example-group*) ~group-desc " ")
+				 :example-descs [] :example-fns [])]
        ~@body
-       (let [group#
-	     (struct example-group *group-desc* *before-all-fns* *before-each-fns*
-		     *example-descs* *example-fns* *after-each-fns* *after-all-fns*)]
-	 (dosync (commute *example-groups* conj group#))))))
+       (dosync (commute *example-groups* conj *example-group*)))))
+
+(defmacro _push-group! [key val]
+  `(set! *example-group* (assoc *example-group* ~key (conj (~key *example-group*) ~val))))
 
 (defmacro before-all [& body]
-  `(push! *before-all-fns* (fn [] ~@body)))
+  `(_push-group! :before-all-fns (fn [] ~@body)))
 
 (defmacro before-each [& body]
-  `(push! *before-each-fns* (fn [] ~@body)))
+  `(_push-group! :before-each-fns (fn [] ~@body)))
 
 (defmacro it [desc & body]
-  `(do (push! *example-descs* ~desc)
-       (push! *example-fns* (fn [] ~@body))))
+  `(do (_push-group! :example-descs ~desc)
+       (_push-group! :example-fns (fn [] ~@body))))
 
 (defmacro after-each [& body]
-  `(push! *after-each-fns* (fn [] ~@body)))
+  `(_push-group! :after-each-fns (fn [] ~@body)))
 
 (defmacro after-all [& body]
-  `(push! *after-all-fns* (fn [] ~@body)))
+  `(_push-group! :after-all-fns (fn [] ~@body)))
 
 (defmacro params [param]
   `(~param *parameters*))
