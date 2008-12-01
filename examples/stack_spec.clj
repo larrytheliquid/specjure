@@ -8,7 +8,7 @@
 
 (shared-examples-for "non-empty example/stack" []
   (it "is not empty"
-    (should-not = true (empty? (param :stack))))
+    (should not = true (empty? (param :stack))))
 
   (it "returns the top item when applied to example/peek"
     (should = (param :last-item-added) (peek (param :stack))))
@@ -23,16 +23,16 @@
   (it "removes the top item when applied to example/pop!"
     (should = (param :last-item-added) (pop! (param :stack)))
     (when-not (empty? (param :stack))
-      (should-not = (param :last-item-added) (pop! (param :stack))))))
+      (should not = (param :last-item-added) (pop! (param :stack))))))
 
 (shared-examples-for "non-full example/stack" []
   (it "is not full"
-    (should-not = true (full? (param :stack))))
+    (should not = true (full? (param :stack))))
 
   (it "adds to the top when applied to example/push!"
     (push! (param :stack) "newly added top item")
     (when-not (empty? (param :stack))
-      (should-not = "newly added top item" (peek (param :stack))))))
+      (should not = "newly added top item" (peek (param :stack))))))
 
 (describe stack
   (before-each (set-param :stack (stack)))

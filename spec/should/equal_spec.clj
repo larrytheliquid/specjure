@@ -6,4 +6,4 @@
 
 (describe should "= without equal arguments"
   (it "fails example"
-    (should-not = 3 7)))
+    (should not = 3 7)))

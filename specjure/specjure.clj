@@ -120,10 +120,9 @@
        (throw (new java.lang.AssertionError (format-failure expected# actual#))))))
 
 (defmacro should [matcher & arguments]
-  (_should '= matcher arguments))
-
-(defmacro should-not [matcher & arguments]
-  (_should '(complement =) matcher arguments))
+  (if (= matcher 'not)
+    (_should '(complement =) (first arguments) (rest arguments))
+    (_should '= matcher arguments)))
 
 (defn check
   ([] (check @*example-groups*))

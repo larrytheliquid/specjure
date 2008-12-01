@@ -10,7 +10,7 @@
 
   (describe "with a negnative number"
     (it "fails example when resolved"
-      (should-not be pos -3))
+      (should not be pos -3))
 
     (it "fails example when fully qualified"
-      (should-not be clojure/pos -3))))
+      (should not be clojure/pos -3))))
