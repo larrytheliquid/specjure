@@ -112,8 +112,7 @@
      (let [examples (mapcat check-group body)
 	   num-examples (count examples)
 	   failures (filter string? examples)
-	   num-failures (count failures)]    
-       (dosync (ref-set *example-groups* []))
+	   num-failures (count failures)]       
        (printf "%n%n%s Example%s, %s Failure%s%n" 
 	       num-examples (if (= 1 num-examples) "" "s")
 	       num-failures (if (= 1 num-failures) "" "s"))
@@ -122,8 +121,23 @@
 (defn specdoc
   ([] (specdoc @*example-groups*))
   ([body]
-     (dosync (ref-set *example-groups* []))
      (doseq example-group body
        (printf "%n%s%n" (:desc example-group))
        (doseq example (:example-descs example-group)
 	 (printf "- %s%n" example)))))
+
+
+
+(defn spec [path & options]
+  (dosync (ref-set *example-groups* []))
+  (let [options (if (empty? options) {} (apply assoc {} options))]
+    (let [file (java.io.File. path)]
+      (if (.isDirectory file)
+	((fn loader [file]
+	   (cond (.isDirectory file) (doseq file (.listFiles file) (loader file))
+		 (.endsWith (.getName file) "_spec.clj") (load-file (.getPath file)))
+	   ) file)
+	(load-file (.getPath file))))
+    (cond (:specdoc options) (specdoc)
+	  (:check options) (check)
+	  true (check))))
