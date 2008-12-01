@@ -126,8 +126,6 @@
        (doseq example (:example-descs example-group)
 	 (printf "- %s%n" example)))))
 
-
-
 (defn spec [path & options]
   (dosync (ref-set *example-groups* []))
   (let [options (if (empty? options) {} (apply assoc {} options))]
@@ -138,6 +136,5 @@
 		 (.endsWith (.getName file) "_spec.clj") (load-file (.getPath file)))
 	   ) file)
 	(load-file (.getPath file))))
-    (cond (:specdoc options) (specdoc)
-	  (:check options) (check)
+    (cond (:dry-run options) (specdoc)
 	  true (check))))
