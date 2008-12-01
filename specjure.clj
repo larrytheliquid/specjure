@@ -90,12 +90,12 @@
 (defmacro after-all [& body]
   `(_push-group! :after-all-fns (fn [] ~@body)))
 
-(defmacro shared-examples-for [desc & body]
-  `(dosync (commute *shared-examples* assoc ~desc (fn [] ~@body))))
+(defmacro shared-examples-for [desc params & body]
+  `(dosync (commute *shared-examples* assoc ~desc (fn [~@params] ~@body))))
 
-(defmacro it-should-behave-like [desc]
+(defmacro it-should-behave-like [desc & args]
   `(let [fn# (get @*shared-examples* ~desc)]
-     (when fn# (fn#))))
+     (when fn# (fn# ~@args))))
 
 (defmacro param [param]
   `(~param *parameters*))
@@ -139,10 +139,12 @@
   (dosync (ref-set *shared-examples* {}))
   (let [options (if (empty? options) {} (apply assoc {} options))]
     (let [file (java.io.File. path)]
-      (if (.isDirectory file)
+      (if (and (not (.isHidden file)) (.isDirectory file))
 	((fn loader [file]
-	   (cond (.isDirectory file) (doseq file (.listFiles file) (loader file))
-		 (.endsWith (.getName file) "_spec.clj") (load-file (.getPath file)))
+	   (cond (and (not (.isHidden file)) (.isDirectory file)) 
+		   (doseq file (.listFiles file) (loader file))
+		 (and (not (.isHidden file)) (.endsWith (.getName file) "_spec.clj")) 
+		   (load-file (.getPath file)))
 	   ) file)
 	(load-file (.getPath file))))
     (cond (:dry-run options) (specdoc)
