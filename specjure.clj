@@ -22,14 +22,18 @@
 	(= matcher 'be-false) [false (not (not (first arguments)))]))
 
 (defn format-failure [expected actual]
-  (format "expected: %s%ngot: %s (using =)%n" expected actual))
+  (format "expected: %s%ngot: %s (using =)" expected actual))
 
 (defn- check-example [group-desc example-desc example-fn]
   (try (example-fn)
        (print ".") true
+       (catch java.lang.Exception e
+	 (print "E")
+	 (format "%n'%s%s' ERROR%n%s: %s%n" group-desc example-desc 
+		 (.getName (.getClass e)) (.getMessage e)))
        (catch java.lang.AssertionError e
 	 (print "F")
-	 (format "%n'%s%s' FAILED%n%s" group-desc example-desc (.getMessage e)))))
+	 (format "%n'%s%s' FAILURE%n%s%n" group-desc example-desc (.getMessage e)))))
 
 (defn- check-group [group]
   (binding [*parameters* {}]        
@@ -104,7 +108,7 @@
      (let [examples (mapcat check-group body)
 	   failures (filter string? examples)]    
        (dosync (ref-set *example-groups* []))
-       (printf "%n%n%s Examples, %s Failures%n" (count examples) (count failures))
+       (printf "%n%n%s Example(s), %s Failure(s)%n" (count examples) (count failures))
        (doseq failure failures (print failure)))))
 
 (defn specdoc
