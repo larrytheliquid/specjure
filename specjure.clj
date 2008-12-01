@@ -81,10 +81,10 @@
 (defmacro after-all [& body]
   `(_push-group! :after-all-fns (fn [] ~@body)))
 
-(defmacro params [param]
+(defmacro param [param]
   `(~param *parameters*))
 
-(defmacro set-params [name value]
+(defmacro set-param [name value]
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
 (defn- _should [comparator matcher arguments]
