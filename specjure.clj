@@ -106,9 +106,13 @@
   ([] (check @*example-groups*))
   ([body]                    
      (let [examples (mapcat check-group body)
-	   failures (filter string? examples)]    
+	   num-examples (count examples)
+	   failures (filter string? examples)
+	   num-failures (count failures)]    
        (dosync (ref-set *example-groups* []))
-       (printf "%n%n%s Example(s), %s Failure(s)%n" (count examples) (count failures))
+       (printf "%n%n%s Example%s, %s Failure%s%n" 
+	       num-examples (if (= 1 num-examples) "" "s")
+	       num-failures (if (= 1 num-failures) "" "s"))
        (doseq failure failures (print failure)))))
 
 (defn specdoc
