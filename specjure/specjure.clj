@@ -31,7 +31,7 @@
 		  false)
 		(catch Exception e#
 		  false)))
-	true (throw Exception "Unsupported matcher")))
+	true (throw (new Exception))))
 
 (defn format-failure [expected actual]
   (format "expected: %s%ngot: %s (using =)" expected actual))
