@@ -4,7 +4,7 @@
 (defn fn-ns-str [fn-sym]
   (let [ns-prefix (str (ns-name *ns*) "/")
 	fn-str (str fn-sym)]
-    (if (. fn-str (startsWith ns-prefix))
+    (if (.contains fn-str "/")
       fn-str
       (str ns-prefix fn-str))))
 
@@ -80,7 +80,7 @@
 				 :desc (str (:desc *example-group*) ~group-desc " ")
 				 :example-descs [] :example-fns [])]
        ~@body
-       (dosync (commute *example-groups* conj *example-group*)))))
+       (dosync (alter *example-groups* conj *example-group*)))))
 
 (defmacro _push-group! [key val]
   `(set! *example-group* (assoc *example-group* ~key (conj (~key *example-group*) ~val))))
@@ -102,7 +102,7 @@
   `(_push-group! :after-all-fns (fn [] ~@body)))
 
 (defmacro shared-examples-for [desc params & body]
-  `(dosync (commute *shared-examples* assoc ~desc (fn [~@params] ~@body))))
+  `(dosync (alter *shared-examples* assoc ~desc (fn [~@params] ~@body))))
 
 (defmacro it-should-behave-like [desc & args]
   `(let [fn# (get @*shared-examples* ~desc)]
