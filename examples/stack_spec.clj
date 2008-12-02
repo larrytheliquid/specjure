@@ -31,7 +31,7 @@
 ;;; Specs
 (shared-examples-for "non-empty example/stack" []
   (it "is not empty"
-    (should not be example/empty (param :stack)))
+    (should not be empty (param :stack)))
 
   (it "returns the top item when applied to example/peek"
     (should = (param :last-item-added) (peek (param :stack))))
@@ -50,7 +50,7 @@
 
 (shared-examples-for "non-full example/stack" []
   (it "is not full"
-    (should not be example/full (param :stack)))
+    (should not be full (param :stack)))
 
   (it "adds to the top when applied to example/push!"
     (push! (param :stack) "newly added top item")
@@ -62,7 +62,7 @@
 
   (describe "(empty)"
     (it "is empty"
-      (should be example/empty (param :stack)))
+      (should be empty (param :stack)))
 
     (it-should-behave-like "non-full example/stack")
 
@@ -96,7 +96,7 @@
       (set-param :last-item-added 10))
 
     (it "is full"
-      (should be example/full (param :stack)))
+      (should be full (param :stack)))
 
     (it-should-behave-like "non-empty example/stack")
 

@@ -17,7 +17,7 @@
 (def *example-group* (struct example-group "" [] [] [] [] [] []))
 
 (defmacro be-predicate [pred & args]
-  `((resolve (symbol (str '~pred \?))) ~@args))
+  `(~(resolve (symbol (str pred \?))) ~@args))
 
 ;;; Verification
 (defmacro parse-matcher [matcher & args]
