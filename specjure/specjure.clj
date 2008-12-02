@@ -108,10 +108,10 @@
   `(let [fn# (get @*shared-examples* ~desc)]
      (when fn# (fn# ~@args))))
 
-(defmacro param [param]
+(defmacro $get [param]
   `(~param *parameters*))
 
-(defmacro set-param [name value]
+(defmacro $assoc! [name value]
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
 (defn- _should [comparator matcher arguments]
