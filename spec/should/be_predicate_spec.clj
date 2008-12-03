@@ -1,16 +1,16 @@
 (ns specjure)
 
-(group should "be-predicate with clojure/pos?"
-  (group "with a positive number"
-    (spec "passes example when resolved"
+(describe should "be-predicate with clojure/pos?"
+  (describe "with a positive number"
+    (it "passes example when resolved"
       (should be pos 3))
 
-    (spec "passes example when fully qualified"
+    (it "passes example when fully qualified"
       (should be clojure/pos 3)))
 
-  (group "with a negnative number"
-    (spec "fails example when resolved"
+  (describe "with a negnative number"
+    (it "fails example when resolved"
       (should not be pos -3))
 
-    (spec "fails example when fully qualified"
+    (it "fails example when fully qualified"
       (should not be clojure/pos -3))))

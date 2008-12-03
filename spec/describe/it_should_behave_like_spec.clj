@@ -1,17 +1,17 @@
 (ns specjure)
 
-(shared-group "shared behavior without parameters" []
-  (spec "runs shared examples without parameters"
+(shared-examples-for "shared behavior without parameters" []
+  (it "runs shared examples without parameters"
     (should = 1 1)))
 
-(shared-group "shared behavior with parameters" [var1]
-  (spec "runs shared examples with parameters"
+(shared-examples-for "shared behavior with parameters" [var1]
+  (it "runs shared examples with parameters"
     (should = 1 var1)))
 
-(group it-should-behave-like
-  (spec-behaves-like "non-existent behavior")
-  (spec-behaves-like "shared behavior without parameters")
-  (spec-behaves-like "shared behavior with parameters" 1)
+(describe it-should-behave-like
+  (it-should-behave-like "non-existent behavior")
+  (it-should-behave-like "shared behavior without parameters")
+  (it-should-behave-like "shared behavior with parameters" 1)
 
-  (spec "runs standard examples"
+  (it "runs standard examples"
     (should = 1 1)))

@@ -1,9 +1,9 @@
 (ns specjure)
 
-(group should "= with equal arguments"
-  (spec "passes example"
+(describe should "= with equal arguments"
+  (it "passes example"
     (should = 3 3)))
 
-(group should "= without equal arguments"
-  (spec "fails example"
+(describe should "= without equal arguments"
+  (it "fails example"
     (should not = 3 7)))
