@@ -104,7 +104,7 @@
 (defmacro shared-examples-for [desc params & body]
   `(dosync (alter *shared-examples* assoc ~desc (fn [~@params] ~@body))))
 
-(defmacro it-should-behave-like [desc & args]
+(defmacro it-behaves-like [desc & args]
   `(let [fn# (get @*shared-examples* ~desc)]
      (when fn# (fn# ~@args))))
 

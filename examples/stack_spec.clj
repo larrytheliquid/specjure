@@ -74,7 +74,7 @@
       (should be empty 
         ($get :stack)))
 
-    (it-should-behave-like "non-full specjure.examples/stack")
+    (it-behaves-like "non-full specjure.examples/stack")
 
     (it "complains when applied to specjure.examples/peek"
       (should throw java.util.EmptyStackException 
@@ -89,16 +89,16 @@
       (push! ($get :stack) 3)
       ($assoc! :last-item-added 3))
 
-    (it-should-behave-like "non-empty specjure.examples/stack")
-    (it-should-behave-like "non-full specjure.examples/stack"))
+    (it-behaves-like "non-empty specjure.examples/stack")
+    (it-behaves-like "non-full specjure.examples/stack"))
 
   (describe "(with one item less than capactiy)"
     (before-each
       (doseq i (range 1 10) (push! ($get :stack) i))
       ($assoc! :last-item-added 9))
 
-    (it-should-behave-like "non-empty specjure.examples/stack")
-    (it-should-behave-like "non-full specjure.examples/stack"))
+    (it-behaves-like "non-empty specjure.examples/stack")
+    (it-behaves-like "non-full specjure.examples/stack"))
 
   (describe "(full)"
     (before-each
@@ -109,7 +109,7 @@
       (should be full 
         ($get :stack)))
 
-    (it-should-behave-like "non-empty specjure.examples/stack")
+    (it-behaves-like "non-empty specjure.examples/stack")
 
     (it "complains when applied to specjure.examples/push!"
       (should throw Exception 

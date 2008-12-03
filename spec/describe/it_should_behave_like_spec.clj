@@ -8,10 +8,10 @@
   (it "runs shared examples with parameters"
     (should = 1 var1)))
 
-(describe it-should-behave-like
-  (it-should-behave-like "non-existent behavior")
-  (it-should-behave-like "shared behavior without parameters")
-  (it-should-behave-like "shared behavior with parameters" 1)
+(describe it-behaves-like
+  (it-behaves-like "non-existent behavior")
+  (it-behaves-like "shared behavior without parameters")
+  (it-behaves-like "shared behavior with parameters" 1)
 
   (it "runs standard examples"
     (should = 1 1)))
