@@ -29,88 +29,88 @@
       result))
 
 ;;; Specs
-(shared-examples-for "non-empty specjure.examples/stack" []
-  (it "is not empty"
+(shared-group "non-empty specjure.examples/stack" []
+  (spec "is not empty"
     (should not be empty 
       ($get :stack)))
 
-  (it "returns the top item when applied to specjure.examples/peek"
+  (spec "returns the top item when applied to specjure.examples/peek"
     (should = ($get :last-item-added) 
       (peek ($get :stack))))
 
-  (it "does not remove the top item when applied to specjure.examples/peek"
+  (spec "does not remove the top item when applied to specjure.examples/peek"
     (should = ($get :last-item-added) 
       (peek ($get :stack)))
     (should = ($get :last-item-added) 
       (peek ($get :stack))))
 
-  (it "returns the top item when applied to specjure.examples/pop!"
+  (spec "returns the top item when applied to specjure.examples/pop!"
     (should = ($get :last-item-added) 
       (pop! ($get :stack))))
   
-  (it "removes the top item when applied to specjure.examples/pop!"
+  (spec "removes the top item when applied to specjure.examples/pop!"
     (should = ($get :last-item-added) 
       (pop! ($get :stack)))
     (when-not (empty? ($get :stack))
       (should not = ($get :last-item-added) 
         (pop! ($get :stack))))))
 
-(shared-examples-for "non-full specjure.examples/stack" []
-  (it "is not full"
+(shared-group "non-full specjure.examples/stack" []
+  (spec "is not full"
     (should not be full 
       ($get :stack)))
 
-  (it "adds to the top when applied to specjure.examples/push!"
+  (spec "adds to the top when applied to specjure.examples/push!"
     (push! ($get :stack) "newly added top item")
     (when-not (empty? ($get :stack))
       (should = "newly added top item" 
         (peek ($get :stack))))))
 
-(describe stack
+(group stack
   (before-each ($assoc! :stack (stack)))
 
-  (describe "(empty)"
-    (it "is empty"
+  (group "(empty)"
+    (spec "is empty"
       (should be empty 
         ($get :stack)))
 
-    (it-should-behave-like "non-full specjure.examples/stack")
+    (spec-behaves-like "non-full specjure.examples/stack")
 
-    (it "complains when applied to specjure.examples/peek"
+    (spec "complains when applied to specjure.examples/peek"
       (should throw java.util.EmptyStackException 
         (peek ($get :stack))))
 
-    (it "complains when applied to specjure.examples/pop!"
+    (spec "complains when applied to specjure.examples/pop!"
       (should throw java.util.EmptyStackException 
         (pop! ($get :stack)))))
 
-  (describe "(with one item)"
+  (group "(with one item)"
     (before-each
       (push! ($get :stack) 3)
       ($assoc! :last-item-added 3))
 
-    (it-should-behave-like "non-empty specjure.examples/stack")
-    (it-should-behave-like "non-full specjure.examples/stack"))
+    (spec-behaves-like "non-empty specjure.examples/stack")
+    (spec-behaves-like "non-full specjure.examples/stack"))
 
-  (describe "(with one item less than capactiy)"
+  (group "(with one item less than capactiy)"
     (before-each
       (doseq i (range 1 10) (push! ($get :stack) i))
       ($assoc! :last-item-added 9))
 
-    (it-should-behave-like "non-empty specjure.examples/stack")
-    (it-should-behave-like "non-full specjure.examples/stack"))
+    (spec-behaves-like "non-empty specjure.examples/stack")
+    (spec-behaves-like "non-full specjure.examples/stack"))
 
-  (describe "(full)"
+  (group "(full)"
     (before-each
       (doseq i (range 1 11) (push! ($get :stack) i))
       ($assoc! :last-item-added 10))
 
-    (it "is full"
+    (spec "is full"
       (should be full 
         ($get :stack)))
 
-    (it-should-behave-like "non-empty specjure.examples/stack")
+    (spec-behaves-like "non-empty specjure.examples/stack")
 
-    (it "complains when applied to specjure.examples/push!"
+    (spec "complains when applied to specjure.examples/push!"
       (should throw Exception 
         (push! ($get :stack) (fn []))))))

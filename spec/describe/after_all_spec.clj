@@ -1,24 +1,24 @@
 (ns specjure)
 
-(describe after-all "without examples" 
+(group after-all "without examples" 
   (after-all ($assoc! :var1 1)))
 
-(describe after-all "with examples"
+(group after-all "with examples"
   (after-all ($assoc! :var1 1))
 
-  (it "runs after-all function after all examples"
+  (spec "runs after-all function after all examples"
     (should = nil ($get :var1)))
 
-  (describe "with nesting"
-    (it "runs nested examples"
+  (group "with nesting"
+    (spec "runs nested examples"
       (should = nil ($get :var1)))
     
-    (describe "with deeper nesting"
+    (group "with deeper nesting"
       (after-all ($assoc! :var1 2))
 
-      (it "runs deeply nested examples"
+      (spec "runs deeply nested examples"
 	(should = nil ($get :var1)))))
 
-  (describe "with separate nesting"
-    (it "runs separately nested examples"
+  (group "with separate nesting"
+    (spec "runs separately nested examples"
       (should = nil ($get :var1)))))
