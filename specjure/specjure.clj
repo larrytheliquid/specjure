@@ -19,14 +19,14 @@
 (defmacro be-predicate [pred & args]
   `(~(resolve (symbol (str pred \?))) ~@args))
 
-(defmacro be-within [expected delta actual]
+(defmacro be-close [expected delta actual]
   `(and (> (+ ~expected ~delta) ~actual) (< (- ~expected ~delta) ~actual)))
 
 ;;; Verification
 (defmacro parse-matcher [matcher & args]
   (cond (= matcher '=) `(vector ~@args)
 	(= matcher 'be) `(vector true (be-predicate ~@args))
-	(= matcher 'be-within) `(vector true (be-within ~@args))
+	(= matcher 'be-close) `(vector true (be-close ~@args))
 	(= matcher 'throw) `(vector true
 	   (try ~@args false
 		(catch ~(first args) e#
