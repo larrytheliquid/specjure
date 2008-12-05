@@ -108,15 +108,15 @@
 (defmacro $assoc! [name value]
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
-(defn- _should [comparator matcher arguments]
+(defn- _ie [comparator matcher arguments]
   `(let [[expected# actual#] (parse-matcher ~matcher ~@arguments)]
      (when-not (~comparator expected# actual#)
        (throw (new java.lang.AssertionError (format-failure expected# actual#))))))
 
-(defmacro should [matcher & arguments]
+(defmacro ie [matcher & arguments]
   (if (= matcher 'not)
-    (_should '(complement =) (first arguments) (rest arguments))
-    (_should '= matcher arguments)))
+    (_ie '(complement =) (first arguments) (rest arguments))
+    (_ie '= matcher arguments)))
 
 (defn check
   ([] (check @*example-groups*))

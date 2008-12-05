@@ -1,16 +1,16 @@
 (ns specjure)
 
-(spec should "be-predicate with clojure/pos?"
+(spec ie "be-predicate with clojure/pos?"
   (spec "with a positive number"
     (it "passes example when resolved"
-      (should be pos 3))
+      (ie be pos 3))
 
     (it "passes example when fully qualified"
-      (should be clojure/pos 3)))
+      (ie be clojure/pos 3)))
 
   (spec "with a negnative number"
     (it "fails example when resolved"
-      (should not be pos -3))
+      (ie not be pos -3))
 
     (it "fails example when fully qualified"
-      (should not be clojure/pos -3))))
+      (ie not be clojure/pos -3))))

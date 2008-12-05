@@ -31,39 +31,39 @@
 ;;; Specs
 (share-spec "non-empty specjure.examples/stack" []
   (it "is not empty"
-    (should not be empty 
+    (ie not be empty 
       ($get :stack)))
 
   (it "returns the top item when applied to specjure.examples/peek"
-    (should = ($get :last-item-added) 
+    (ie = ($get :last-item-added) 
       (peek ($get :stack))))
 
   (it "does not remove the top item when applied to specjure.examples/peek"
-    (should = ($get :last-item-added) 
+    (ie = ($get :last-item-added) 
       (peek ($get :stack)))
-    (should = ($get :last-item-added) 
+    (ie = ($get :last-item-added) 
       (peek ($get :stack))))
 
   (it "returns the top item when applied to specjure.examples/pop!"
-    (should = ($get :last-item-added) 
+    (ie = ($get :last-item-added) 
       (pop! ($get :stack))))
   
   (it "removes the top item when applied to specjure.examples/pop!"
-    (should = ($get :last-item-added) 
+    (ie = ($get :last-item-added) 
       (pop! ($get :stack)))
     (when-not (empty? ($get :stack))
-      (should not = ($get :last-item-added) 
+      (ie not = ($get :last-item-added) 
         (pop! ($get :stack))))))
 
 (share-spec "non-full specjure.examples/stack" []
   (it "is not full"
-    (should not be full 
+    (ie not be full 
       ($get :stack)))
 
   (it "adds to the top when applied to specjure.examples/push!"
     (push! ($get :stack) "newly added top item")
     (when-not (empty? ($get :stack))
-      (should = "newly added top item" 
+      (ie = "newly added top item" 
         (peek ($get :stack))))))
 
 (spec stack
@@ -71,17 +71,17 @@
 
   (spec "(empty)"
     (it "is empty"
-      (should be empty 
+      (ie be empty 
         ($get :stack)))
 
     (use-spec "non-full specjure.examples/stack")
 
     (it "complains when applied to specjure.examples/peek"
-      (should throw java.util.EmptyStackException 
+      (ie throw java.util.EmptyStackException 
         (peek ($get :stack))))
 
     (it "complains when applied to specjure.examples/pop!"
-      (should throw java.util.EmptyStackException 
+      (ie throw java.util.EmptyStackException 
         (pop! ($get :stack)))))
 
   (spec "(with one item)"
@@ -106,11 +106,11 @@
       ($assoc! :last-item-added 10))
 
     (it "is full"
-      (should be full 
+      (ie be full 
         ($get :stack)))
 
     (use-spec "non-empty specjure.examples/stack")
 
     (it "complains when applied to specjure.examples/push!"
-      (should throw Exception 
+      (ie throw Exception 
         (push! ($get :stack) (fn []))))))
