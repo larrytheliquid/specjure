@@ -1,14 +1,14 @@
 (ns specjure)
 
-(describe should "throw with a non-error"
+(spec should "throw with a non-error"
   (it "fails example"
     (should not throw Error (rest []))))
 
-(describe should "throw with an error value"
+(spec should "throw with an error value"
   (it "fails example"
     (should not throw Error Exception)))
 
-(describe should "throw with a thrown error"
+(spec should "throw with a thrown error"
   (it "passes example for more general errors"
     (should throw Exception (/ 1 0)))
 

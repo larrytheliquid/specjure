@@ -67,8 +67,8 @@
 		(:example-fns group)))))
 
 ;;; Interface
-(defmacro describe 
-  "Describes a specification in the form of verifiable (executable) examples."
+(defmacro spec 
+  "Create a specification in the form of verifiable (executable) examples."
   {:arglists '([symbol? description? (options*) examples*])} 
   [arg1 arg2 & args]  
   (let [function-str (when (symbol? arg1) (fn-ns-str arg1))	
@@ -95,10 +95,10 @@
 (defmacro after [& body]
   `(_push-group! :after-fns (fn [] ~@body)))
 
-(defmacro shared-examples-for [desc params & body]
+(defmacro share-spec [desc params & body]
   `(dosync (alter *shared-examples* assoc ~desc (fn [~@params] ~@body))))
 
-(defmacro it-behaves-like [desc & args]
+(defmacro use-spec [desc & args]
   `(let [fn# (get @*shared-examples* ~desc)]
      (when fn# (fn# ~@args))))
 
@@ -138,7 +138,7 @@
        (doseq example (:example-descs example-group)
 	 (printf "- %s%n" example)))))
 
-(defn spec [path & options]
+(defn verify [path & options]
   (dosync (ref-set *example-groups* []))
   (dosync (ref-set *shared-examples* {}))
   (let [options (if (empty? options) {} (apply assoc {} options))]

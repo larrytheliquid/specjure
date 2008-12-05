@@ -29,7 +29,7 @@
       result))
 
 ;;; Specs
-(shared-examples-for "non-empty specjure.examples/stack" []
+(share-spec "non-empty specjure.examples/stack" []
   (it "is not empty"
     (should not be empty 
       ($get :stack)))
@@ -55,7 +55,7 @@
       (should not = ($get :last-item-added) 
         (pop! ($get :stack))))))
 
-(shared-examples-for "non-full specjure.examples/stack" []
+(share-spec "non-full specjure.examples/stack" []
   (it "is not full"
     (should not be full 
       ($get :stack)))
@@ -66,15 +66,15 @@
       (should = "newly added top item" 
         (peek ($get :stack))))))
 
-(describe stack
+(spec stack
   (before ($assoc! :stack (stack)))
 
-  (describe "(empty)"
+  (spec "(empty)"
     (it "is empty"
       (should be empty 
         ($get :stack)))
 
-    (it-behaves-like "non-full specjure.examples/stack")
+    (use-spec "non-full specjure.examples/stack")
 
     (it "complains when applied to specjure.examples/peek"
       (should throw java.util.EmptyStackException 
@@ -84,23 +84,23 @@
       (should throw java.util.EmptyStackException 
         (pop! ($get :stack)))))
 
-  (describe "(with one item)"
+  (spec "(with one item)"
     (before
       (push! ($get :stack) 3)
       ($assoc! :last-item-added 3))
 
-    (it-behaves-like "non-empty specjure.examples/stack")
-    (it-behaves-like "non-full specjure.examples/stack"))
+    (use-spec "non-empty specjure.examples/stack")
+    (use-spec "non-full specjure.examples/stack"))
 
-  (describe "(with one item less than capactiy)"
+  (spec "(with one item less than capactiy)"
     (before
       (doseq i (range 1 10) (push! ($get :stack) i))
       ($assoc! :last-item-added 9))
 
-    (it-behaves-like "non-empty specjure.examples/stack")
-    (it-behaves-like "non-full specjure.examples/stack"))
+    (use-spec "non-empty specjure.examples/stack")
+    (use-spec "non-full specjure.examples/stack"))
 
-  (describe "(full)"
+  (spec "(full)"
     (before
       (doseq i (range 1 11) (push! ($get :stack) i))
       ($assoc! :last-item-added 10))
@@ -109,7 +109,7 @@
       (should be full 
         ($get :stack)))
 
-    (it-behaves-like "non-empty specjure.examples/stack")
+    (use-spec "non-empty specjure.examples/stack")
 
     (it "complains when applied to specjure.examples/push!"
       (should throw Exception 
