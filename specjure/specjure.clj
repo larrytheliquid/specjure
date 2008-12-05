@@ -12,9 +12,9 @@
 (def *example-groups* (ref []))
 (def *shared-examples* (ref {}))
 (def *parameters*)
-(defstruct example-group :desc :before-all-fns :before-each-fns 
-	   :example-descs :example-fns :after-each-fns :after-all-fns)
-(def *example-group* (struct example-group "" [] [] [] [] [] []))
+(defstruct example-group :desc :before-fns 
+	   :example-descs :example-fns :after-fns)
+(def *example-group* (struct example-group "" [] [] [] []))
 
 (defmacro be-predicate [pred & args]
   `(~(resolve (symbol (str pred \?))) ~@args))
@@ -57,18 +57,14 @@
 
 (defn- check-group [group]
   (binding [*parameters* {}]        
-    (doseq fn (:before-all-fns group) (fn))
-    (let [result
-	  (doall (map (fn [example-desc example-fn] 
-			(doseq fn (:before-each-fns group) (fn))
-			(let [checked-example
-			      (check-example (:desc group) example-desc example-fn)]
-			  (doseq fn (:after-each-fns group) (fn))		    
-			  checked-example))
-		      (:example-descs group)
-		      (:example-fns group)))]
-      (doseq fn (:after-all-fns group) (fn))
-      result)))
+    (doall (map (fn [example-desc example-fn] 
+		  (doseq fn (:before-fns group) (fn))
+		  (let [checked-example
+			(check-example (:desc group) example-desc example-fn)]
+		    (doseq fn (:after-fns group) (fn))		    
+		    checked-example))
+		(:example-descs group)
+		(:example-fns group)))))
 
 ;;; Interface
 (defmacro describe 
@@ -89,21 +85,15 @@
 (defmacro _push-group! [key val]
   `(set! *example-group* (assoc *example-group* ~key (conj (~key *example-group*) ~val))))
 
-(defmacro before-all [& body]
-  `(_push-group! :before-all-fns (fn [] ~@body)))
-
-(defmacro before-each [& body]
-  `(_push-group! :before-each-fns (fn [] ~@body)))
+(defmacro before [& body]
+  `(_push-group! :before-fns (fn [] ~@body)))
 
 (defmacro it [desc & body]
   `(do (_push-group! :example-descs ~desc)
        (_push-group! :example-fns (when-not (empty? '~body) (fn [] ~@body)))))
 
-(defmacro after-each [& body]
-  `(_push-group! :after-each-fns (fn [] ~@body)))
-
-(defmacro after-all [& body]
-  `(_push-group! :after-all-fns (fn [] ~@body)))
+(defmacro after [& body]
+  `(_push-group! :after-fns (fn [] ~@body)))
 
 (defmacro shared-examples-for [desc params & body]
   `(dosync (alter *shared-examples* assoc ~desc (fn [~@params] ~@body))))

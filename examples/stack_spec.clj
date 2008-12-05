@@ -67,7 +67,7 @@
         (peek ($get :stack))))))
 
 (describe stack
-  (before-each ($assoc! :stack (stack)))
+  (before ($assoc! :stack (stack)))
 
   (describe "(empty)"
     (it "is empty"
@@ -85,7 +85,7 @@
         (pop! ($get :stack)))))
 
   (describe "(with one item)"
-    (before-each
+    (before
       (push! ($get :stack) 3)
       ($assoc! :last-item-added 3))
 
@@ -93,7 +93,7 @@
     (it-behaves-like "non-full specjure.examples/stack"))
 
   (describe "(with one item less than capactiy)"
-    (before-each
+    (before
       (doseq i (range 1 10) (push! ($get :stack) i))
       ($assoc! :last-item-added 9))
 
@@ -101,7 +101,7 @@
     (it-behaves-like "non-full specjure.examples/stack"))
 
   (describe "(full)"
-    (before-each
+    (before
       (doseq i (range 1 11) (push! ($get :stack) i))
       ($assoc! :last-item-added 10))
 

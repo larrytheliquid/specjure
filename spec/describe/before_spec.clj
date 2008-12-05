@@ -1,12 +1,12 @@
 (ns specjure)
 
-(describe before-all "without examples" 
-  (before-all ($assoc! :var1 1)))
+(describe before "without examples" 
+  (before ($assoc! :var1 1)))
 
-(describe before-all "with examples"
-  (before-all ($assoc! :var1 1))
+(describe before "with examples"
+  (before ($assoc! :var1 1))
 
-  (it "runs before-all function before all examples"
+  (it "runs before function before each example"
     (should = 1 ($get :var1)))
 
   (describe "with nesting"
@@ -14,7 +14,7 @@
       (should = 1 ($get :var1)))
     
     (describe "with deeper nesting"
-      (before-all
+      (before 
 	($assoc! :var1 (inc ($get :var1))))
 
       (it "runs deeply nested examples"
