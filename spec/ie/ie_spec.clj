@@ -4,4 +4,4 @@
   (ie = 3 3))
 
 (spec ie "with a function returning logical false fails example"
-  (ie (complement =) 3 7))
+  (ie-not = 3 7))

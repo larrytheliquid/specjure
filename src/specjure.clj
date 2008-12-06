@@ -27,19 +27,17 @@
 
 ;;; Verification
 (defn format-failure [expected actual]
-  (format "expected: %s%ngot: %s)" expected actual))
+  (format "expected: %s%ngot: %s" expected actual))
 
 (defn- check-example [desc example]
-  (try (when example 
-	 (example)
-	 (print ".") true)
+  (try (let [result (example)]
+	 (if result
+	   (do (print "F") (format "%n%s[FAILURE]%n%s%n" desc result))
+	   (do (print ".") true)))
        (catch java.lang.Exception e
 	 (print "E")
-	 (format "%n'%s' ERROR%n%s: %s%n" desc 
-		 (.getName (.getClass e)) (.getMessage e)))
-       (catch java.lang.AssertionError e
-	 (print "F")
-	 (format "%n'%s%s' FAILURE%n%s%n" desc example (.getMessage e)))))
+	 (format "%n%s[ERROR]%n%s: %s%n" desc 
+		 (.getName (.getClass e)) (.getMessage e)))))
 
 (defn- check-group [group]
   (binding [*parameters* {}]        
@@ -90,7 +88,7 @@
 
 (defmacro _ie [bol f & args]
   `(when (= ~bol (not (~f ~@args)))
-     (throw (new java.lang.AssertionError (format-failure true false)))))
+     (format-failure true false)))
 
 (defmacro ie [& body]
   `(_push-group! :examples (fn [] (_ie true ~@body))))
