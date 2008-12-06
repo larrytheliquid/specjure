@@ -12,12 +12,8 @@
 (def *example-groups* (ref []))
 (def *shared-examples* (ref {}))
 (def *parameters*)
-(defstruct example-group :desc :before-fns 
-	   :example-descs :example-fns :after-fns)
-(def *example-group* (struct example-group "" [] [] [] []))
-
-(defmacro be-predicate [pred & args]
-  `(~(resolve (symbol (str pred \?))) ~@args))
+(defstruct example-group :desc :befores :examples :afters)
+(def *example-group* (struct example-group "" [] [] []))
 
 (defmacro be-close [expected delta actual]
   `(and (> (+ ~expected ~delta) ~actual) (< (- ~expected ~delta) ~actual)))
@@ -38,47 +34,42 @@
 	true (throw (new Exception))))
 
 (defn format-failure [expected actual]
-  (format "expected: %s%ngot: %s (using =)" expected actual))
+  (format "expected: %s%ngot: %s)" expected actual))
 
-(defn- check-example [group-desc example-desc example-fn]
-  (try (when example-fn 
-	 (example-fn)
+(defn- check-example [desc example]
+  (try (when example 
+	 (example)
 	 (print ".") true)
-       (when-not example-fn
-	 (print "P")
-	 (format "%n'%s%s' PENDING%n" group-desc example-desc))
        (catch java.lang.Exception e
 	 (print "E")
-	 (format "%n'%s%s' ERROR%n%s: %s%n" group-desc example-desc 
+	 (format "%n'%s' ERROR%n%s: %s%n" desc 
 		 (.getName (.getClass e)) (.getMessage e)))
        (catch java.lang.AssertionError e
 	 (print "F")
-	 (format "%n'%s%s' FAILURE%n%s%n" group-desc example-desc (.getMessage e)))))
+	 (format "%n'%s%s' FAILURE%n%s%n" desc example (.getMessage e)))))
 
 (defn- check-group [group]
   (binding [*parameters* {}]        
-    (doall (map (fn [example-desc example-fn] 
-		  (doseq fn (:before-fns group) (fn))
+    (doall (map (fn [example] 
+		  (doseq f (:befores group) (f))
 		  (let [checked-example
-			(check-example (:desc group) example-desc example-fn)]
-		    (doseq fn (:after-fns group) (fn))		    
+			(check-example (:desc group) example)]
+		    (doseq f (:afters group) (f))		    
 		    checked-example))
-		(:example-descs group)
-		(:example-fns group)))))
+		(:examples group)))))
 
 ;;; Interface
 (defmacro spec 
   "Create a specification in the form of verifiable (executable) examples."
-  {:arglists '([symbol? description? (options*) examples*])} 
+  {:arglists '([symbol? description? body])} 
   [arg1 arg2 & args]  
   (let [function-str (when (symbol? arg1) (fn-ns-str arg1))	
 	group-desc (if (string? arg2) (str function-str " " arg2) function-str)
 	body (if (string? arg2) args (cons arg2 args))
 	group-desc (if (not function-str) arg1 group-desc)
 	body (if (not function-str) (cons arg2 args) body)]
-    `(binding [*example-group* (assoc *example-group* 
-				 :desc (str (:desc *example-group*) ~group-desc " ")
-				 :example-descs [] :example-fns [])]
+    `(binding [*example-group* (assoc *example-group* :examples []
+				 :desc (str (:desc *example-group*) ~group-desc " "))]
        ~@body
        (dosync (alter *example-groups* conj *example-group*)))))
 
@@ -86,21 +77,17 @@
   `(set! *example-group* (assoc *example-group* ~key (conj (~key *example-group*) ~val))))
 
 (defmacro before [& body]
-  `(_push-group! :before-fns (fn [] ~@body)))
-
-(defmacro it [desc & body]
-  `(do (_push-group! :example-descs ~desc)
-       (_push-group! :example-fns (when-not (empty? '~body) (fn [] ~@body)))))
+  `(_push-group! :befores (fn [] ~@body)))
 
 (defmacro after [& body]
-  `(_push-group! :after-fns (fn [] ~@body)))
+  `(_push-group! :afters (fn [] ~@body)))
 
 (defmacro share-spec [desc params & body]
   `(dosync (alter *shared-examples* assoc ~desc (fn [~@params] ~@body))))
 
 (defmacro use-spec [desc & args]
-  `(let [fn# (get @*shared-examples* ~desc)]
-     (when fn# (fn# ~@args))))
+  `(let [f# (get @*shared-examples* ~desc)]
+     (when f# (f# ~@args))))
 
 (defmacro $get [param]
   `(~param *parameters*))
@@ -108,15 +95,12 @@
 (defmacro $assoc! [name value]
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
-(defn- _ie [comparator matcher arguments]
-  `(let [[expected# actual#] (parse-matcher ~matcher ~@arguments)]
-     (when-not (~comparator expected# actual#)
-       (throw (new java.lang.AssertionError (format-failure expected# actual#))))))
+(defmacro _ie [f & args]
+  `(when-not (~f ~@args)
+     (throw (new java.lang.AssertionError (format-failure true false)))))
 
-(defmacro ie [matcher & arguments]
-  (if (= matcher 'not)
-    (_ie '(complement =) (first arguments) (rest arguments))
-    (_ie '= matcher arguments)))
+(defmacro ie [& body]
+  `(_push-group! :examples (fn [] (_ie ~@body))))
 
 (defn check
   ([] (check @*example-groups*))
@@ -132,11 +116,8 @@
 
 (defn specdoc
   ([] (specdoc @*example-groups*))
-  ([body]
-     (doseq example-group body
-       (printf "%n%s%n" (:desc example-group))
-       (doseq example (:example-descs example-group)
-	 (printf "- %s%n" example)))))
+  ([body] (doseq example-group body
+	    (printf "%n- %s" (:desc example-group)))))
 
 (defn verify [path & options]
   (dosync (ref-set *example-groups* []))
