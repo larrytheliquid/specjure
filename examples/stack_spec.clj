@@ -93,5 +93,4 @@
     (use-spec "non-empty specjure.examples/stack")
 
     (spec "complains when applied to specjure.examples/push!"
-      (ie throws? Exception (push! ($get :stack) (fn [])))))
-)
+      (ie throws? Exception (push! ($get :stack) (fn []))))))

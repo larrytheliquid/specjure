@@ -25,27 +25,6 @@
 (defstruct example-group :desc :befores :examples :afters)
 (def *example-group* (struct example-group "" [] [] []))
 
-;;; Verification
-(defn format-failure [expected actual]
-  (format "expected: %s%ngot: %s" expected actual))
-
-(defn- check-example [desc example]
-  (try (if-let [result (example)]
-	 (do (print "F") (format "%n%s[FAILURE]%n%s%n" desc result))
-	 (do (print ".") true))
-       (catch java.lang.Exception e
-	 (print "E")
-	 (format "%n%s[ERROR]%n%s: %s%n" desc 
-		 (.getName (.getClass e)) (.getMessage e)))))
-
-(defn- check-group [group]
-  (map #(binding [*parameters* {}]
-	  (doseq [f (:befores group)] (f))
-	  (let [result (check-example (:desc group) %)]
-	    (doseq [f (:afters group)] (f))		    
-	    result))
-       (:examples group)))
-
 ;;; Interface
 (defmacro spec 
   "Create a specification in the form of verifiable (executable) examples."
@@ -83,6 +62,9 @@
 (defmacro $assoc! [name value]
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
+(defn format-failure [expected actual]
+  (format "expected: %s%ngot: %s" true false))
+
 (defmacro _ie [bol f & args]
   `(when (= ~bol (not (~f ~@args)))
      (format-failure true false)))
@@ -92,6 +74,24 @@
 
 (defmacro ie-not [& body]
   `(_push-group! :examples (fn [] (_ie false ~@body))))
+
+;;; Verification
+(defn- check-example [desc example]
+  (try (if-let [result (example)]
+	 (do (print "F") (format "%n%s[FAILURE]%n%s%n" desc result))
+	 (do (print ".") true))
+       (catch java.lang.Exception e
+	 (print "E")
+	 (format "%n%s[ERROR]%n%s: %s%n" desc 
+		 (.getName (.getClass e)) (.getMessage e)))))
+
+(defn- check-group [group]
+  (map #(binding [*parameters* {}]
+	  (doseq [f (:befores group)] (f))
+	  (let [result (check-example (:desc group) %)]
+	    (doseq [f (:afters group)] (f))		    
+	    result))
+       (:examples group)))
 
 (defn- check
   ([] (check @*example-groups*))
