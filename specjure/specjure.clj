@@ -8,6 +8,16 @@
       fn-str
       (str ns-prefix fn-str))))
 
+(defn close? [expected delta actual]
+  (and (>= (+ expected delta) actual) 
+       (< (- expected delta) actual)))
+
+(defmacro throws? [exception & body]
+  `(try (do ~@body) false
+       (catch ~exception e# true)
+       (catch Error e# false)
+       (catch Exception e# false)))
+
 ;;; Data
 (def *example-groups* (atom []))
 (def *shared-groups* (atom {}))
@@ -15,24 +25,7 @@
 (defstruct example-group :desc :befores :examples :afters)
 (def *example-group* (struct example-group "" [] [] []))
 
-(defmacro be-close [expected delta actual]
-  `(and (> (+ ~expected ~delta) ~actual) (< (- ~expected ~delta) ~actual)))
-
 ;;; Verification
-(defmacro parse-matcher [matcher & args]
-  (cond (= matcher '=) `(vector ~@args)
-	(= matcher 'be) `(vector true (be-predicate ~@args))
-	(= matcher 'be-close) `(vector true (be-close ~@args))
-	(= matcher 'throw) `(vector true
-	   (try ~@args false
-		(catch ~(first args) e#
-		  true)
-		(catch Error e#
-		  false)
-		(catch Exception e#
-		  false)))
-	true (throw (new Exception))))
-
 (defn format-failure [expected actual]
   (format "expected: %s%ngot: %s)" expected actual))
 
@@ -95,12 +88,15 @@
 (defmacro $assoc! [name value]
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
-(defmacro _ie [f & args]
-  `(when-not (~f ~@args)
+(defmacro _ie [bol f & args]
+  `(when (= ~bol (not (~f ~@args)))
      (throw (new java.lang.AssertionError (format-failure true false)))))
 
 (defmacro ie [& body]
-  `(_push-group! :examples (fn [] (_ie ~@body))))
+  `(_push-group! :examples (fn [] (_ie true ~@body))))
+
+(defmacro ie-not [& body]
+  `(_push-group! :examples (fn [] (_ie false ~@body))))
 
 (defn check
   ([] (check @*example-groups*))
@@ -119,7 +115,7 @@
   ([body] (doseq [example-group body]
 	    (printf "%n- %s" (:desc example-group)))))
 
-(defn verify [path & options]
+(defn check-file [path & options]
   (swap! *example-groups* (fn [_] []))
   (swap! *shared-groups* (fn [_] {}))
   (let [options (if (empty? options) {} (apply assoc {} options))]

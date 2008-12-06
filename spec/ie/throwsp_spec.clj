@@ -1,20 +1,17 @@
 (ns specjure)
 
-;; (spec ie "throw with a non-error"
-;;   (it "fails example"
-;;     (ie not throw Error (rest []))))
+(spec throws? "with a non-error fails example"
+  (ie-not throws? Error (rest [])))
 
-;; (spec ie "throw with an error value"
-;;   (it "fails example"
-;;     (ie not throw Error Exception)))
+(spec throws? "throw with an error value fails example"
+  (ie-not throws? Error Exception))
 
-;; (spec ie "throw with a thrown error"
-;;   (it "passes example for more general errors"
-;;     (ie throw Exception (/ 1 0)))
+(spec throws? "throw with a thrown error"
+  (spec "passes example for more general errors"
+    (ie throws? Exception (/ 1 0)))
 
-;;   (it "passes example for matching errors"
-;;     (ie throw java.lang.ArithmeticException (/ 1 0)))
+  (spec "passes example for matching errors"
+    (ie throws? java.lang.ArithmeticException (/ 1 0)))
 
-;;   (it "fails example for non-matching errors"
-;;     (ie not throw java.lang.AssertionError (/ 1 0))))
-
+  (spec "fails example for non-matching errors"
+    (ie-not throws? java.lang.AssertionError (/ 1 0))))
