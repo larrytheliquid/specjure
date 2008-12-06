@@ -1,13 +1,6 @@
 (ns specjure)
 
 ;;; Utilities
-(defn fn-ns-str [fn-sym]
-  (let [ns-prefix (str (ns-name *ns*) "/")
-	fn-str (str fn-sym)]
-    (if (.contains fn-str "/")
-      fn-str
-      (str ns-prefix fn-str))))
-
 (defn close? [expected delta actual]
   (and (>= (+ expected delta) actual) 
        (< (- expected delta) actual)))
@@ -17,6 +10,13 @@
        (catch ~exception e# true)
        (catch Error e# false)
        (catch Exception e# false)))
+
+(defn fn-ns-str [fn-sym]
+  (let [ns-prefix (str (ns-name *ns*) "/")
+	fn-str (str fn-sym)]
+    (if (.contains fn-str "/")
+      fn-str
+      (str ns-prefix fn-str))))
 
 ;;; Data
 (def *example-groups* (atom []))
@@ -30,24 +30,21 @@
   (format "expected: %s%ngot: %s" expected actual))
 
 (defn- check-example [desc example]
-  (try (let [result (example)]
-	 (if result
-	   (do (print "F") (format "%n%s[FAILURE]%n%s%n" desc result))
-	   (do (print ".") true)))
+  (try (if-let [result (example)]
+	 (do (print "F") (format "%n%s[FAILURE]%n%s%n" desc result))
+	 (do (print ".") true))
        (catch java.lang.Exception e
 	 (print "E")
 	 (format "%n%s[ERROR]%n%s: %s%n" desc 
 		 (.getName (.getClass e)) (.getMessage e)))))
 
 (defn- check-group [group]
-  (binding [*parameters* {}]        
-    (doall (map (fn [example] 
-		  (doseq [f (:befores group)] (f))
-		  (let [checked-example
-			(check-example (:desc group) example)]
-		    (doseq [f (:afters group)] (f))		    
-		    checked-example))
-		(:examples group)))))
+  (map #(binding [*parameters* {}]
+	  (doseq [f (:befores group)] (f))
+	  (let [result (check-example (:desc group) %)]
+	    (doseq [f (:afters group)] (f))		    
+	    result))
+       (:examples group)))
 
 ;;; Interface
 (defmacro spec 
@@ -64,6 +61,13 @@
        ~@body
        (swap! *example-groups* conj *example-group*))))
 
+(defmacro share-spec [desc params & body]
+  `(swap! *shared-groups* assoc ~desc (fn [~@params] ~@body)))
+
+(defmacro use-spec [desc & args]
+  `(let [f# (get @*shared-groups* ~desc)]
+     (when f# (f# ~@args))))
+
 (defmacro _push-group! [key val]
   `(set! *example-group* (assoc *example-group* ~key (conj (~key *example-group*) ~val))))
 
@@ -72,13 +76,6 @@
 
 (defmacro after [& body]
   `(_push-group! :afters (fn [] ~@body)))
-
-(defmacro share-spec [desc params & body]
-  `(swap! *shared-groups* assoc ~desc (fn [~@params] ~@body)))
-
-(defmacro use-spec [desc & args]
-  `(let [f# (get @*shared-groups* ~desc)]
-     (when f# (f# ~@args))))
 
 (defmacro $get [param]
   `(~param *parameters*))
@@ -96,7 +93,7 @@
 (defmacro ie-not [& body]
   `(_push-group! :examples (fn [] (_ie false ~@body))))
 
-(defn check
+(defn- check
   ([] (check @*example-groups*))
   ([body]                    
      (let [examples (mapcat check-group body)
@@ -108,7 +105,7 @@
 	       num-failures (if (= 1 num-failures) "" "s"))
        (doseq [failure failures] (print failure)))))
 
-(defn specdoc
+(defn- specdoc
   ([] (specdoc @*example-groups*))
   ([body] (doseq [example-group body]
 	    (printf "%n- %s" (:desc example-group)))))
@@ -123,8 +120,7 @@
 	   (cond (and (not (.isHidden file)) (.isDirectory file)) 
 		   (doseq [file (.listFiles file)] (loader file))
 		 (and (not (.isHidden file)) (.endsWith (.getName file) "_spec.clj")) 
-		   (load-file (.getPath file)))
-	   ) file)
+		   (load-file (.getPath file)))) file)
 	(load-file (.getPath file))))
     (cond (:dry-run options) (specdoc)
 	  true (check))))
