@@ -9,8 +9,8 @@
       (str ns-prefix fn-str))))
 
 ;;; Data
-(def *example-groups* (ref []))
-(def *shared-examples* (ref {}))
+(def *example-groups* (atom []))
+(def *shared-groups* (atom {}))
 (def *parameters*)
 (defstruct example-group :desc :befores :examples :afters)
 (def *example-group* (struct example-group "" [] [] []))
@@ -71,7 +71,7 @@
     `(binding [*example-group* (assoc *example-group* :examples []
 				 :desc (str (:desc *example-group*) ~group-desc " "))]
        ~@body
-       (dosync (alter *example-groups* conj *example-group*)))))
+       (swap! *example-groups* conj *example-group*))))
 
 (defmacro _push-group! [key val]
   `(set! *example-group* (assoc *example-group* ~key (conj (~key *example-group*) ~val))))
@@ -83,10 +83,10 @@
   `(_push-group! :afters (fn [] ~@body)))
 
 (defmacro share-spec [desc params & body]
-  `(dosync (alter *shared-examples* assoc ~desc (fn [~@params] ~@body))))
+  `(swap! *shared-groups* assoc ~desc (fn [~@params] ~@body)))
 
 (defmacro use-spec [desc & args]
-  `(let [f# (get @*shared-examples* ~desc)]
+  `(let [f# (get @*shared-groups* ~desc)]
      (when f# (f# ~@args))))
 
 (defmacro $get [param]
@@ -120,8 +120,8 @@
 	    (printf "%n- %s" (:desc example-group)))))
 
 (defn verify [path & options]
-  (dosync (ref-set *example-groups* []))
-  (dosync (ref-set *shared-examples* {}))
+  (swap! *example-groups* (fn [_] []))
+  (swap! *shared-groups* (fn [_] {}))
   (let [options (if (empty? options) {} (apply assoc {} options))]
     (let [file (java.io.File. path)]
       (if (and (not (.isHidden file)) (.isDirectory file))
