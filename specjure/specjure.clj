@@ -51,10 +51,10 @@
 (defn- check-group [group]
   (binding [*parameters* {}]        
     (doall (map (fn [example] 
-		  (doseq f (:befores group) (f))
+		  (doseq [f (:befores group)] (f))
 		  (let [checked-example
 			(check-example (:desc group) example)]
-		    (doseq f (:afters group) (f))		    
+		    (doseq [f (:afters group)] (f))		    
 		    checked-example))
 		(:examples group)))))
 
@@ -112,11 +112,11 @@
        (printf "%n%n%s Example%s, %s Failure%s%n" 
 	       num-examples (if (= 1 num-examples) "" "s")
 	       num-failures (if (= 1 num-failures) "" "s"))
-       (doseq failure failures (print failure)))))
+       (doseq [failure failures] (print failure)))))
 
 (defn specdoc
   ([] (specdoc @*example-groups*))
-  ([body] (doseq example-group body
+  ([body] (doseq [example-group body]
 	    (printf "%n- %s" (:desc example-group)))))
 
 (defn verify [path & options]
@@ -127,7 +127,7 @@
       (if (and (not (.isHidden file)) (.isDirectory file))
 	((fn loader [file]
 	   (cond (and (not (.isHidden file)) (.isDirectory file)) 
-		   (doseq file (.listFiles file) (loader file))
+		   (doseq [file (.listFiles file)] (loader file))
 		 (and (not (.isHidden file)) (.endsWith (.getName file) "_spec.clj")) 
 		   (load-file (.getPath file)))
 	   ) file)
