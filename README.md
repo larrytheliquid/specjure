@@ -101,7 +101,7 @@ For example, you could load some databaes records and clean them up in in `befor
 You can also store values from before in a thread local paramaters hash. Set items in the hash
 using `($assoc! :key val)`, and retrieve them with `($get :key)`. 
 
-`spec' support arbitray nesting, where each nest will inherit parent descriptions, befores, and afters.
+`spec` support arbitray nesting, where each nest will inherit parent descriptions, befores, and afters.
 You may want to share specs with `(share-spec "specs in this scenario" [my-var])` and use them in
 `spec` like this: `(use-spec "specs in a certain scenario" {:data-for "my-var"})`
 
