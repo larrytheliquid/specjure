@@ -81,3 +81,18 @@ and will include more detailed failure information soon.
 Let's get our function to pass:
 
     (defn greet [] "Greetings!")
+
+More Spec'ing
+-------------
+
+Now we can add more specifications:
+
+    (spec greet "with a single argument greets the individual"
+      (ie = "Greetings Larry!" (greet "Larry"))
+      (ie = "Greetings Frank!" (greet "Frank")))
+
+Notice that we can group several Clojure language examples in one natural language specification.
+
+Although Specjure focuses on simplicity, it can also be used for more complex specification.
+You can run code before example by passing it to `before` inside of `spec`. All the instances of 
+code inside `before` or `after` will run before or after each `ie`. 
