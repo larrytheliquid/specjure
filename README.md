@@ -93,3 +93,17 @@ Now we can add more specifications:
 
 Notice that we can group several Clojure language examples in one natural language specification.
 
+Although Specjure focuses on simplicity, it can also be used for more complex specification.
+You can run code before example by passing it to `before` inside of `spec`. All the instances of 
+code inside `before` or `after` will run before or after each `ie`. 
+
+For example, you could load some databaes records and clean them up in in `before` and `after`.
+You can also store values from before in a thread local paramaters hash. Set items in the hash
+using `($assoc! :key val)`, and retrieve them with `($get :key)`. 
+
+`spec' support arbitray nesting, where each nest will inherit parent descriptions, befores, and afters.
+You may want to share specs with `(share-spec "specs in this scenario" [my-var])` and use them in
+`spec` like this: `(use-spec "specs in a certain scenario" {:data-for "my-var"})`
+
+All of these features are in the [stack example]("http://github.com/larrytheliquid/specjure/tree/master/examples/stack_spec.clj").
+Look for the comment at the top of this file to see the equivalent RSpec.
