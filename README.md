@@ -41,7 +41,7 @@ If you are spec'ing a specific function, you can optionally use its symbol.
 
     (spec greet "without arguments greets generally")
 
-Now give a more specific in Clojure:
+Now specify what you mean in Clojure:
 
     (spec greet "without arguments greets generally"
       (ie = "Greetings!" (greet))
@@ -49,20 +49,20 @@ Now give a more specific in Clojure:
 The `ie` macro is similar to `clojure.core/apply`, but the last argument is not a list, and you can pass it macros.
 `ie` closes its environment in a function for later verification, so lets do that.
 
-Running Specs
+Checking Specs
 -------------
 
 Go into the Clojure REPL of your choice and:
 
-   (require 'specjure)
+    (require 'specjure)
 
 At this point you can load your file, and use:
 
-   (specjure/check)
+    (specjure/check)
 
 Or, if your file is in a separate file:
 
-   (specjure/check-file "/path/to/file.clj"
+    (specjure/check-file "/path/to/file.clj"
 
 If you give `check-file` a directory, it will check all files ending in `_spec.clj` in that directory and subdirectories.
 
@@ -71,25 +71,25 @@ You should have received:
     java.lang.Exception: Unable to resolve symbol: greet in this context (my-examp.clj:4)
       [Thrown class clojure.lang.Compiler$CompilerException]
 
-So let's define our function (make sure to define it before the spec).
+So let's define our function (make sure to define it before the spec.)
 
-   (defn greet [])
+    (defn greet [])
 
 Now if you check the spec again it will run and fail. The failure currently includes the spec description,
-and will include more detailed failure information at a future time.
+and will include more detailed failure information soon.
 
 Let's get our function to pass:
 
-  (defn greet [] "Greetings!")
+    (defn greet [] "Greetings!")
 
 More Spec'ing
 -------------
 
 Now we can add more specifications:
 
-  (spec greet "with a single argument greets the individual"
-    (ie = "Greetings Larry!" (greet "Larry"))
-    (ie = "Greetings Frank!" (greet "Frank")))
+    (spec greet "with a single argument greets the individual"
+      (ie = "Greetings Larry!" (greet "Larry"))
+      (ie = "Greetings Frank!" (greet "Frank")))
 
 Notice that we can group several Clojure language examples in one natural language specification.
 
