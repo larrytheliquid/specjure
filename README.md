@@ -112,8 +112,8 @@ Specjure separates the steps of collecting new specs, and checking them. This me
 mapping over a collection to generate a bunch of specifications. Any code inside of `ie` is not executed until check time
 (as it is stored in a function.) The same applies to `before` and `after`.
 
-After specs are collected into functions, a they can be retrieved lazily. Each before, after, and local parameter bindings
+After specs are collected into functions, they can be retrieved lazily. Each before, after, and local parameter bindings
 (what you access with `$get`) is specific to its `ie`. This was done intentionally to prevent troublesome bugs to track
-down when doing stuff with clojure references, and other side-effect code. The api is not decided on for this yet, but
+down when doing stuff with Clojure references, and other side-effect code. The API is not decided on for this yet, but
 later the user will be able to access the lazy list of specs and run them however they please. A concurrent `pcheck` will
 also be available.
