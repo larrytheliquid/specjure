@@ -105,5 +105,5 @@ using `($assoc! :key val)`, and retrieve them with `($get :key)`.
 You may want to share specs with `(share-spec "specs in this scenario" [my-var])` and use them in
 `spec` like this: `(use-spec "specs in a certain scenario" {:data-for "my-var"})`
 
-All of these features are in the [stack example]("http://github.com/larrytheliquid/specjure/tree/master/examples/stack_spec.clj").
+All of these features are in the [stack example](http://github.com/larrytheliquid/specjure/tree/master/examples/stack_spec.clj).
 Look for the comment at the top of this file to see the equivalent RSpec.
