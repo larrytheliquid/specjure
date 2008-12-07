@@ -20,11 +20,11 @@ Make sure to add the generated `clojure.jar` to your classpath.
 Updating
 --------
 
-If you already have the Git repository and jar file but the library has updated:
+If you already have the Git repository and jar file but want the latest version:
 
-   git pull
-   ant clean
-   ant jar
+    git pull
+    ant clean
+    ant jar
 
 Basic Spec Definition
 ---------------------
@@ -37,7 +37,7 @@ Now you are ready to specify some behavior using plain English (or your language
 
     (spec "specjure.example/greet without arguments greets generally")
 
-If you are spec'ing a specific function, you can optionally use its symbol.
+If you are spec'ing a specific function, you can optionally use its var:
 
     (spec greet "without arguments greets generally")
 
@@ -47,7 +47,7 @@ Now specify what you mean in Clojure:
       (ie = "Greetings!" (greet))
 
 The `ie` macro is similar to `clojure.core/apply`, but the last argument is not a list, and you can pass it macros.
-`ie` closes its environment in a function for later verification, so lets do that.
+`ie` closes its environment in a function for later verification, so let's do that.
 
 Checking Specs
 --------------
@@ -66,7 +66,7 @@ Or, if your file is in a separate file:
 
 If you give `check-file` a directory, it will check all files ending in `_spec.clj` in that directory and subdirectories.
 
-You should have received:
+You should have received an error like:
 
     java.lang.Exception: Unable to resolve symbol: greet in this context (my-examp.clj:4)
       [Thrown class clojure.lang.Compiler$CompilerException]
@@ -107,3 +107,13 @@ You may want to share specs with `(share-spec "specs in this scenario" [my-var])
 
 All of these features are in the [stack example](http://github.com/larrytheliquid/specjure/tree/master/examples/stack_spec.clj).
 Look for the comment at the top of this file to see the equivalent RSpec.
+
+Specjure separates the steps of collecting new specs, and checking them. This means you can do metaprogramming things like
+mapping over a collection to generate a bunch of specifications. Any code inside of `ie` is not executed until check time
+(as it is stored in a function.) The same applies to `before` and `after`.
+
+After specs are collected into functions, a they can be retrieved lazily. Each before, after, and local parameter bindings
+(what you access with `$get`) is specific to its `ie`. This was done intentionally to prevent troublesome bugs to track
+down when doing stuff with clojure references, and other side-effect code. The api is not decided on for this yet, but
+later the user will be able to access the lazy list of specs and run them however they please. A concurrent `pcheck` will
+also be available.
