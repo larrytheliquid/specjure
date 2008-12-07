@@ -47,8 +47,8 @@ Now specify what you mean in Clojure:
       (ie = "Greetings!" (greet))
 
 The `ie` macro is similar to `clojure.core/apply`, but the last argument is not a list, and you can pass it macros.
-`ie` closes its environment in a function for later verification, so let's do that. Note that it stands for the
-Latin "id est", more frequenlty seen in English as "i.e."
+`ie` closes its environment in a function for later verification (it checks for logical true or logical false), so 
+let's do that. Note that it stands for the Latin "id est", more frequenlty seen in English as "i.e."
 
 Checking Specs
 --------------
