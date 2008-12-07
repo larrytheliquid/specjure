@@ -4,7 +4,7 @@
   (spec "with an integer passes example"
     (ie close? 2 1 (/ 5 3)))
 
-  (spec "with a flaot passes example"
+  (spec "with a float passes example"
     (ie close? 1.6 0.1 (/ 5 3))))
 
 (spec close? "with greater error"
