@@ -35,8 +35,10 @@
 	body (if (string? arg2) args (cons arg2 args))
 	group-desc (if (not function-str) arg1 group-desc)
 	body (if (not function-str) (cons arg2 args) body)]
-    `(binding [*example-group* (assoc *example-group* :examples []
-				 :desc (str (:desc *example-group*) ~group-desc " "))]
+    `(binding [*example-group* (assoc *example-group* 
+				 :examples []
+				 :desc (str (:desc *example-group*) 
+					    ~group-desc " "))]
        ~@body
        (swap! *example-groups* conj *example-group*))))
 
@@ -48,7 +50,8 @@
      (when f# (f# ~@args))))
 
 (defmacro _push-group! [key val]
-  `(set! *example-group* (assoc *example-group* ~key (conj (~key *example-group*) ~val))))
+  `(set! *example-group* (assoc *example-group* ~key 
+				(conj (~key *example-group*) ~val))))
 
 (defmacro before [& body]
   `(_push-group! :befores (fn [] ~@body)))
@@ -114,13 +117,14 @@
   (swap! *example-groups* (fn [_] []))
   (swap! *shared-groups* (fn [_] {}))
   (let [options (if (empty? options) {} (apply assoc {} options))]
-    (let [file (java.io.File. path)]
+    (let [file (.getAbsoluteFile (java.io.File. path))]
       (if (and (not (.isHidden file)) (.isDirectory file))
 	((fn loader [file]
 	   (cond (and (not (.isHidden file)) (.isDirectory file)) 
-		   (doseq [file (.listFiles file)] (loader file))
-		 (and (not (.isHidden file)) (.endsWith (.getName file) "_spec.clj")) 
-		   (load-file (.getPath file)))) file)
+		 (doseq [file (.listFiles file)] (loader file))
+		 (and (not (.isHidden file)) 
+		      (.endsWith (.getName file) "_spec.clj")) 
+		 (load-file (.getPath file)))) file)
 	(load-file (.getPath file))))
     (cond (:dry-run options) (specdoc)
 	  true (check))))
