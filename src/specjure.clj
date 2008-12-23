@@ -18,6 +18,17 @@
       fn-str
       (str ns-prefix fn-str))))
 
+(defn- join
+  ([values] (join values " "))
+  ([values separator] (join values separator ""))
+  ([values separator start]
+     (if (= 0 (count values))
+       ""
+       (str start (reduce 
+		   (fn [acc e] (str acc separator (print-str e))) 
+		   values)))))
+
+
 ;;; Data
 (def *example-groups* (atom []))
 (def *shared-groups* (atom {}))
@@ -65,12 +76,27 @@
 (defmacro $assoc! [name value]
   `(set! *parameters* (assoc *parameters* ~name ~value)))
 
-(defn format-failure [expected actual]
-  (format "expected: %s%ngot: %s" true false))
+(defmulti expectation 
+  (fn [bol f args] f))
+
+(defmethod expectation :default [bol f args]
+  `(let [value# (~f ~@args)]
+     (when (= ~bol (not value#))
+       (format-failure '~f ~bol "<logical true>" value#))))
+
+(defmethod expectation '= [bol f args]
+  `(let [args# (list ~@args)]
+     (when (= ~bol (not (apply ~f args#)))
+       (format-failure ~bol '~f (first args#) 
+		       (join (rest args#) "")))))
+
+(defn format-failure [bol f expected actual]
+  (format "using: %s%nexpected%s: %s%ngot: %s" 
+	  f (if bol "" "-not") 
+	  expected actual))
 
 (defmacro _ie [bol f & args]
-  `(when (= ~bol (not (~f ~@args)))
-     (format-failure true false)))
+  (expectation bol f args))
 
 (defmacro ie [& body]
   `(_push-group! :examples (fn [] (_ie true ~@body))))
